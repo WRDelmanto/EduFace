@@ -1,6 +1,6 @@
 ## Project Info
 #### # ====================================
-#### # App Name:		EDUFACE
+#### # App Name: EDUFACE
 #### # Description: EDUFACE - Educational Facial Analysis for Cognitive Engagement
 #### # Authors:
 - **XXXXX**
@@ -15,11 +15,21 @@
 #### # ====================================
 
 ## About
-This project explores the use of AI to monitor learners' facial expressions during study sessions. The primary goal is to investigate whether emotion recognition can help identify key emotional states—such as confusion, frustration, or engagement—in real time, providing insights that could enhance personalized learning and support.
+Emotion-Triggered Micro-Adaptation: A Real-Time Feedback System for Personalized Digital Learning
+
+Research Questions:
+1 - Which learner emotions can be reliable detected in real time using facial expressions during learning sessions?
+2 - How can real-time emotion detection be used to trigger adaptive micro-interventions (e.g., pauses, hints, content speed changes) during content delivery?
+3 - To what extent does real-time emotion-aware improve learner engagement and immediate content comprehension compared to non-adaptive systems?
+
+Research Objectives:
+1 - To assess the real-time detection accuracy of learner emotions based on facial expressions during digital learning.
+2 - To design and implement adaptive micro-inventions (e.g., pauses, content slowing, hints) based on real-time emotional cues.
+3 - To evaluate the impact on emotion-triggered real-time adaptations on learner engagement and short-term comprehension.
 
 ## Initial Setup (Windows)
 
-To start developing this wonderful idea with us, you need to follow these steps:
+To start developing this wonderful idea, you need to follow these steps:
 
 1. Download and install
 - [Python 3.12](https://www.python.org/downloads/)
