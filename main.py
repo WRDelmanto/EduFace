@@ -6,13 +6,17 @@ import cv2
 import threading
 from modules.camera import Camera
 from modules.face_extractor import FaceExtractor
-from modules.deep_face import DeepFaceAnalyzer
+from modules.deep_face_analyzer import DeepFaceAnalyzer
+from modules.fer_analyzer import FerAnalyzer
 
 # Global shared variables for thread-safe communication
 face_extractor = FaceExtractor()  # Handles face detection and extraction
 deep_face_analyzer = DeepFaceAnalyzer()  # Analyzes emotions using DeepFace
+fer_analyzer = FerAnalyzer()  # Analyzes emotions using FER
+
 face_location = None  # Stores current face position
 emotion = None  # Stores current detected emotion
+
 lock = threading.Lock()  # Thread synchronization lock
 
 def analyze_face(frame):
@@ -30,7 +34,9 @@ def analyze_face(frame):
 
     if face_img is not None:
         # If face is detected, analyze its emotion
-        emotion = deep_face_analyzer.get_emotion(face_img)
+        # emotion = deep_face_analyzer.get_emotion(face_img)
+        emotion = fer_analyzer.get_emotion(face_img)
+
         with lock:
             face_location = face_position
             emotion = emotion
