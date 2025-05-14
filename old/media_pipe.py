@@ -73,4 +73,4 @@ class MediaPipe:
                     connection_drawing_spec=self.drawing_spec             # Style for connecting lines
                 )
 
-        return frame, results.multi_face_landmarks is not None 
+        return frame, results.multi_face_landmarks is not None
