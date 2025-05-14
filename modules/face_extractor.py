@@ -38,10 +38,7 @@ class FaceExtractor:
         x, y, w, h = faces[0]
         
         # Extract face ROI
-        face_roi = frame[y:y+h, x:x+w]
-        
-        # Resize to 128x128
-        resized_face = cv2.resize(face_roi, (128, 128))
+        face_img = frame[y:y+h, x:x+w]
         
         # Create face location dictionary
         face_location = {
@@ -51,4 +48,4 @@ class FaceExtractor:
             'height': int(h)
         }
         
-        return resized_face, face_location 
+        return face_img, face_location 
