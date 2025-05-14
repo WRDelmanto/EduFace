@@ -1,5 +1,7 @@
 from deepface import DeepFace
 
+# https://github.com/serengil/deepface
+
 class DeepFaceAnalyzer:
     """
     A class that provides emotion analysis functionality using the DeepFace library.
@@ -19,7 +21,7 @@ class DeepFaceAnalyzer:
         try:
             # Analyze the frame for emotions using DeepFace
             emotions = DeepFace.analyze(
-                frame,
+                frame,  # Analyze the frame
                 actions = ['emotion'],  # Only analyze emotions, not other attributes
                 enforce_detection=False,  # Don't enforce face detection to avoid errors
                 silent=True  # Suppress DeepFace's internal logging
