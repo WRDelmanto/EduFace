@@ -6,9 +6,9 @@
 - **XXXXX**
   - ID: xxxxxxxxx
   - Email: xxx@student.douglascollege.ca
-- **XXXXX**
-  - ID: xxxxxxxxx
-  - Email: xxx@student.douglascollege.ca
+- **Nathan Bussabok**
+  - ID: 300375256
+  - Email: bussabokn@student.douglascollege.ca
 - **William Delmanto**
   - ID: 300375603  
   - Email: rodriguesdelmaw@student.douglascollege.ca
