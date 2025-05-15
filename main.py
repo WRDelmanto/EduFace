@@ -1,12 +1,12 @@
 # Disable oneDNN optimizations to prevent potential compatibility issues
 import os
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0' # Disable oneDNN optimizations
 
 import cv2
 import threading
 from modules.camera import Camera
-from modules.face_extractor import FaceExtractor
 from modules.deep_face_analyzer import DeepFaceAnalyzer
+from modules.face_extractor import FaceExtractor
 from modules.fer_analyzer import FerAnalyzer
 
 # Global shared variables for thread-safe communication
@@ -34,8 +34,8 @@ def analyze_face(frame):
 
     if face_img is not None:
         # If face is detected, analyze its emotion
-        # emotion = deep_face_analyzer.get_emotion(face_img)
-        emotion = fer_analyzer.get_emotion(face_img)
+        emotion = deep_face_analyzer.get_emotion(face_img)
+        # emotion = fer_analyzer.get_emotion(face_img)
 
         with lock:
             face_location = face_position
