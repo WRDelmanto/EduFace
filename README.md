@@ -18,14 +18,14 @@
 Emotion-Triggered Micro-Adaptation: A Real-Time Feedback System for Personalized Digital Learning
 
 Research Questions:
-1 - Which learner emotions can be reliable detected in real time using facial expressions during learning sessions?
-2 - How can real-time emotion detection be used to trigger adaptive micro-interventions (e.g., pauses, hints, content speed changes) during content delivery?
-3 - To what extent does real-time emotion-aware improve learner engagement and immediate content comprehension compared to non-adaptive systems?
+1. Which learner emotions can be reliable detected in real time using facial expressions during learning sessions?
+2. How can real-time emotion detection be used to trigger adaptive micro-interventions (e.g., pauses, hints, content speed changes) during content delivery?
+3. To what extent does real-time emotion-aware improve learner engagement and immediate content comprehension compared to non-adaptive systems?
 
 Research Objectives:
-1 - To assess the real-time detection accuracy of learner emotions based on facial expressions during digital learning.
-2 - To design and implement adaptive micro-inventions (e.g., pauses, content slowing, hints) based on real-time emotional cues.
-3 - To evaluate the impact on emotion-triggered real-time adaptations on learner engagement and short-term comprehension.
+1. To assess the real-time detection accuracy of learner emotions based on facial expressions during digital learning.
+2. To design and implement adaptive micro-inventions (e.g., pauses, content slowing, hints) based on real-time emotional cues.
+3. To evaluate the impact on emotion-triggered real-time adaptations on learner engagement and short-term comprehension.
 
 ## Initial Setup (Windows)
 
