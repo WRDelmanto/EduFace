@@ -1,7 +1,7 @@
 ## Project Info
 #### # ====================================
-#### # App Name: EDUFACE
-#### # Description: EDUFACE - Educational Facial Analysis for Cognitive Engagement
+#### # App Name: Eduface
+#### # Description: Eduface - Educational Facial Analysis for Cognitive Engagement
 #### # Authors:
 - **XXXXX**
   - ID: xxxxxxxxx
@@ -28,7 +28,6 @@ Research Objectives:
 3. To evaluate the impact on emotion-triggered real-time adaptations on learner engagement and short-term comprehension.
 
 ## Initial Setup (Windows)
-
 To start developing this wonderful idea, you need to follow these steps:
 
 1. Download and install
@@ -38,42 +37,19 @@ To start developing this wonderful idea, you need to follow these steps:
 2. Clone the existing repository
 
 ### Setting up Virtual Environment for Backend (Windows)
-
 3. Open Command Prompt (cmd) as administrator
 4. Navigate to your project directory:
    ```
-   cd path\to\EDUFACE
+   cd path\to\EduFace\Backend
    ```
-5. Create a virtual environment:
-   ```
-   py -3.12 -m venv venv
-   ```
-6. Activate the virtual environment:
-   ```
-   venv\Scripts\activate
-   ```
-7. Install the required packages:
+4. Install the required packages:
    ```
    pip install -r requirements.txt
    ```
 
 ## Usage
-
 ### Running the Application
-
-1. Activate the virtual environment (if not already activated):
-   ```
-   venv\Scripts\activate
-   ```
-
 2. Run the main script:
    ```
-   python src\main.py
+   python .\main.py
    ```
-
-## Deactivating Virtual Environment
-
-When you're done working on the project, you can deactivate the virtual environment:
-```
-deactivate
-```
