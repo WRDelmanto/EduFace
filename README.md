@@ -36,20 +36,38 @@ To start developing this wonderful idea, you need to follow these steps:
 - [GitHub Desktop](https://desktop.github.com/)
 2. Clone the existing repository
 
-### Setting up Virtual Environment for Backend (Windows)
-3. Open Command Prompt (cmd) as administrator
-4. Navigate to your project directory:
+### Setting up Frontend (Windows)
+1. Open Command Prompt (cmd) as administrator
+2. Navigate to your project directory:
+   ```
+   cd path\to\EduFace\Frontend
+   ```
+3. Install the required packages:
+   ```
+   npm install
+   ```
+
+## Usage
+### Running the Frontend
+4. Run the main script:
+   ```
+   npm run dev
+   ```
+
+### Setting up Backend (Windows)
+1. Open Command Prompt (cmd) as administrator
+2. Navigate to your project directory:
    ```
    cd path\to\EduFace\Backend
    ```
-4. Install the required packages:
+3. Install the required packages:
    ```
    pip install -r requirements.txt
    ```
 
 ## Usage
-### Running the Application
-2. Run the main script:
+### Running the Backend
+4. Run the main script:
    ```
    python .\main.py
    ```
