@@ -1,12 +1,9 @@
-# Core dependencies
 opencv-python==4.11.0.86
-# mediapipe==0.10.21  # Uncomment if you need mediapipe
+mediapipe==0.10.21
 fer==22.5.1
 moviepy==1.0.3
 deepface==0.0.93
 tf-keras==2.19.0
-
-# Additional dependencies required by FER
 matplotlib>=3.10.3
 numpy>=1.26.4
 pandas>=2.2.3
@@ -18,3 +15,5 @@ imageio<3.0,>=2.5
 imageio-ffmpeg>=0.2.0
 facenet-pytorch>=2.6.0
 ffmpeg==1.4
+python-socketio[asgi]
+uvicorn
