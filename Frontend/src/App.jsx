@@ -1,26 +1,17 @@
-import './App.css'
-import { useEffect } from 'react'
-import Welcome from './screens/Welcome'
-import socket from './services/socket'
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import WelcomeScreen from './screens/WelcomeScreen';
+import LearningScreen from './screens/LearningScreen';
+import WebcamPreview from './screens/WebcamPreview';
 
 const App = () => {
-  useEffect(() => {
-    console.log("Connecting to backend...")
-
-    socket.on('connect', () => {
-      console.log('Connected to backend');
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Disconnected from backend');
-    });
-  }, [])
-
   return (
-    <>
-      <Welcome />
-    </>
-  )
-}
+    <Routes>
+      <Route path="/" element={<WelcomeScreen />} />
+      <Route path="/preview" element={<WebcamPreview/>} />
+      <Route path="/session" element={<LearningScreen />} />
+    </Routes>
+  );
+};
 
 export default App;
+

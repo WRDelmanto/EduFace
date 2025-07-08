@@ -1,0 +1,103 @@
+.welcome-wrapper {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f6f6f6;
+  font-family: 'Segoe UI', sans-serif;
+  color: #222;
+  overflow-x: hidden;
+}
+
+.welcome-header {
+  background-color: #4b007d;
+  color: white;
+  padding: 1.25rem 2rem;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 600;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-bottom: 0.5px solid white;
+  flex-shrink: 0;
+}
+
+.welcome-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.welcome-card {
+  background-color: white;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 800px;
+  height: 600px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 1.1rem;
+  text-align: left;
+}
+
+.welcome-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: #333;
+}
+
+.scroll-content {
+  overflow-y: auto;
+  max-height: 370px;
+  padding-right: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.scroll-content p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.consent-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+  font-size: 1.05rem;
+}
+
+.consent-label input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  accent-color: #4b007d;
+  cursor: pointer;
+}
+
+.start-button {
+  align-self: center;
+  padding: 0.75rem 2.5rem;
+  font-size: 1.1rem;
+  color: white;
+  background-color: #4b007d;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.start-button:hover {
+  background-color: #6e0aad;
+}
+
+.start-button:disabled {
+  background-color: #bbb;
+  cursor: not-allowed;
+}
