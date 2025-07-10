@@ -108,19 +108,29 @@
   display: flex;
   justify-content: center;
   margin-left: 5px;
+  overflow: hidden;
 }
 
 .text-feed {
-  flex: 1;
+  flex-grow: 1;
+  min-height: 0;
   background-color: #fff;
   border-radius: 8px;
   padding: 1rem;
   overflow-y: auto;
+  height: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.05);
   font-size: 0.95rem;
   line-height: 1.4;
   color: #333;
   transition: transform 0.6s ease-in-out;
+  padding-bottom: 20rem;
+}
+
+.text-feed::-webkit-scrollbar {
+  display: none;
 }
 
 .text-feed.grow {
@@ -210,6 +220,7 @@
   line-height: 1.4;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   word-wrap: break-word;
+  animation: messagePop 0.3s ease;
 }
 
 .message-bubble.system {
@@ -253,4 +264,113 @@
   padding: 6px 12px;
   font-size: 14px;
   cursor: pointer;
+}
+
+/* ===== Yes/No Response Buttons in Message Bubbles ===== */
+.response-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
+
+.response-buttons button {
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #4b007d;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.response-buttons button:hover {
+  background-color: #6e0aad;
+}
+
+@keyframes pop-in {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-pop-in {
+  animation: pop-in 0.4s ease-out;
+}
+
+.message-bubble.disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.video-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4); /* semi-transparent black */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.video-overlay {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.frustration-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(30, 30, 30, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.frustration-timer-wrapper {
+  text-align: center;
+  color: white;
+  font-size: 2rem;
+  z-index: 1001;
+}
+
+.pause-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.break-message {
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+}
+
+.timer-text {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-top: 0.25rem;
+}
+
+.message-bubble.faded {
+  opacity: 0.5;
+  pointer-events: none;
 }

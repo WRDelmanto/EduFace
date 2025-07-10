@@ -1,23 +1,36 @@
 import handleConfusion from './handleConfusion';
+import handleEngaged from './handleEngaged';
 import handleFrustration from './handleFrustration';
 import handleDisengaged from './handleDisengaged';
-import handleUncertain from './handleUncertain';
 
-export default function handleLearningState(state, videoRef) {
+export default function handleLearningState(
+  state,
+  videoRef,
+  setMessages,
+  onUserResponse,
+  frustrationActive,
+  setFrustrationActive // 👈 pass this from LearningScreen.jsx
+) {
   switch (state) {
     case 'confused':
-      handleConfusion(videoRef);
+      handleConfusion(videoRef, setMessages, onUserResponse);
       break;
-    case 'frustrated':
-      handleFrustration(videoRef);
+    case 'engaged':
+      handleEngaged(setMessages);
       break;
     case 'disengaged':
-      handleDisengaged(videoRef);
+      handleDisengaged(videoRef, setMessages);
       break;
-    case 'uncertain':
-      handleUncertain(videoRef);
+    case 'frustrated':
+      if (!frustrationActive) {
+        if (setFrustrationActive) setFrustrationActive(true);
+
+        handleFrustration(videoRef, setMessages, () => {
+          if (setFrustrationActive) setFrustrationActive(false); // optional external reset
+        });
+      }
       break;
     default:
-      console.log(`ℹ️ No adaptation for: ${state}`);
+      break;
   }
 }

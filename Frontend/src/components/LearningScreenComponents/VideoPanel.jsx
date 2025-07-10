@@ -1,15 +1,32 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import learningVideo from '../../assets/learningVideo.mp4';
 import handleLearningState from '../../services/microadaptation';
 
-function VideoPanel({ videoStarted, onStart, latestResponse }) {
-  const videoRef = useRef(null);
+function VideoPanel({
+  videoStarted,
+  onStart,
+  latestResponse,
+  onRewindRequest,
+  videoRef,
+  setMessages,
+  onUserResponse,
+  onResume // 👈 Add this
+}) {
+  const [pauseOverlay, setPauseOverlay] = useState(false);
+  const [countdown, setCountdown] = useState(15);
 
   useEffect(() => {
     if (videoStarted && latestResponse?.learning_state) {
-      handleLearningState(latestResponse.learning_state, videoRef);
+      handleLearningState(
+        latestResponse.learning_state,
+        videoRef,
+        setMessages,
+        onUserResponse,
+        setPauseOverlay,
+        setCountdown
+      );
     }
-  }, [latestResponse, videoStarted]);
+  }, [latestResponse, videoStarted, onRewindRequest, setMessages, onUserResponse]);
 
   return (
     <div className="right-panel">
@@ -22,16 +39,25 @@ function VideoPanel({ videoStarted, onStart, latestResponse }) {
           </button>
         </div>
       ) : (
-        <div className="main-video">
+        <div className="main-video" style={{ position: 'relative' }}>
           <video
             ref={videoRef}
             src={learningVideo}
             controls
             autoPlay
             className="video-element"
+            onPlay={() => {
+              // This prop comes from LearningScreen
+              if (typeof onResume === 'function') onResume();
+            }}
           >
             Your browser does not support the video tag.
           </video>
+          {pauseOverlay && (
+            <div className="video-overlay">
+              {countdown}
+            </div>
+          )}
         </div>
       )}
     </div>
