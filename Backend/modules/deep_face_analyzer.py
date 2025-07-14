@@ -11,24 +11,33 @@ class DeepFaceAnalyzer:
     def get_emotion(self, frame):
         """
         Analyzes the emotion in a given frame using DeepFace.
-        
-        Args:
-            frame: The image frame containing a face to analyze
-            
-        Returns:
-            str: The dominant emotion detected in the frame, or None if analysis fails
+        Returns the dominant emotion as a string (legacy method).
         """
         try:
-            # Analyze the frame for emotions using DeepFace
             emotions = DeepFace.analyze(
-                frame,  # Analyze the frame
-                actions = ['emotion'],  # Only analyze emotions, not other attributes
-                enforce_detection=False,  # Don't enforce face detection to avoid errors
-                silent=True  # Suppress DeepFace's internal logging
+                frame,
+                actions=['emotion'],
+                enforce_detection=False,
+                silent=True
             )
-
-            # Return the dominant emotion from the analysis
             return emotions[0]['dominant_emotion']
         except Exception as e:
             print(f"Error in get_emotion: {str(e)}")
+            return None
+
+    def get_emotions(self, frame):
+        """
+        Analyzes the emotion in a given frame using DeepFace.
+        Returns a dictionary of all emotions and their scores, or None if analysis fails.
+        """
+        try:
+            emotions = DeepFace.analyze(
+                frame,
+                actions=['emotion'],
+                enforce_detection=False,
+                silent=True
+            )
+            return emotions[0]['emotion']
+        except Exception as e:
+            print(f"Error in get_emotions_dict: {str(e)}")
             return None

@@ -33,13 +33,13 @@ class FaceExtractor:
         # If no faces detected, return None
         if len(faces) == 0:
             return None, None
-            
+
         # Get the first face (assuming we want the most prominent face)
         x, y, w, h = faces[0]
-        
+
         # Extract face ROI
         face_img = frame[y:y+h, x:x+w]
-        
+
         # Create face location dictionary
         face_location = {
             'x': int(x),
@@ -47,5 +47,5 @@ class FaceExtractor:
             'width': int(w),
             'height': int(h)
         }
-        
-        return face_img, face_location 
+
+        return face_img, face_location
