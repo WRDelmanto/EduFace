@@ -26,7 +26,7 @@ function LearningScreen() {
     latestResponse,
   } = useWebcamSocket(videoStarted);
 
-  const effectiveResponse = simulatedResponse;
+  const effectiveResponse = latestResponse || simulatedResponse;
 
   const handleUserResponse = (value, id) => {
     if (value === 'rewind' && videoRef.current) {

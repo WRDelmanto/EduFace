@@ -59,33 +59,32 @@ function useWebcamSocket(videoStarted) {
       const ctx = canvas.getContext('2d');
 
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      // const imageData = canvas.toDataURL('image/jpeg', 0.7);
+      const imageData = canvas.toDataURL('image/jpeg', 0.7);
 
-      // setFrameCount((prev) => {
-      //   const current = prev + 1;
+      setFrameCount((prev) => {
+        const current = prev + 1;
 
-      //   console.log(`📤 Sending frame #${current} to backend`);
-      //   console.log('🧩 Base64 preview:', imageData.slice(0, 100) + '...');
-      //   console.log('📏 Base64 size:', imageData.length);
+        console.log(`📤 Sending frame #${current} to backend`);
+        console.log('🧩 Base64 preview:', imageData.slice(0, 100) + '...');
+        console.log('📏 Base64 size:', imageData.length);
 
-      //   socket.emit('frame', { image: imageData }, (response) => {
-      //     if (response && typeof response === 'object') {
-      //       console.log('📥 Received response from backend:', response);
+        socket.emit('frame', { image: imageData }, (response) => {
+          if (response && typeof response === 'object') {
+            console.log('📥 Received response from backend:', response);
 
-      //       const { emotion, learning_state, scores } = response;
-      //       console.log(`🧠 Emotion: ${emotion}`);
-      //       console.log(`🎓 Interpreted Learning State: ${learning_state}`);
-      //       console.table(scores);
+            const { emotion, learning_state, scores } = response;
+            console.log(`🧠 Emotion: ${emotion}`);
+            console.log(`🎓 Interpreted Learning State: ${learning_state}`);
+            console.table(scores);
 
-      //       setLatestResponse(response);
-      //     } else {
-      //       console.warn('❌ Invalid response from backend');
-      //     }
-      //   });
+            setLatestResponse(response);
+          } else {
+            console.warn('❌ Invalid response from backend');
+          }
+        });
 
-      //   return current;
-      // });
-      setFrameCount((prev) => prev + 1);
+        return current;
+      });
     }, 1000); // You can reduce to 500ms or 300ms if needed
 
     return () => {
