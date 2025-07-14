@@ -1,0 +1,386 @@
+.webcam-preview-wrapper {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  overflow: hidden;
+}
+
+.webcam-preview-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: white;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.webcam-preview-header h1 {
+  font-size: 2.2rem;
+  font-weight: 300;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.webcam-preview-header p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.webcam-preview-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.webcam-preview-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 3rem;
+  width: 100%;
+  max-width: 800px;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  text-align: center;
+  animation: slideUp 0.6s ease-out;
+}
+
+.instruction-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.instruction-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.instruction-section h2 {
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: #444;
+  margin: 0;
+}
+
+.instruction-section p {
+  font-size: 1.1rem;
+  color: #666;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.webcam-preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 700px; /* Increased from 500px */
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border: 3px solid rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.webcam-preview-container.success-flash {
+  border-color: #4CAF50;
+  box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+  animation: successFlash 3s ease-out; /* Changed from 1s to 3s for 3 flashes */
+}
+
+.webcam-preview-video {
+  width: 100%;
+  height: auto;
+  display: block;
+  transform: scaleX(-1); /* Mirror the video */
+}
+
+.center-guide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.guide-circle {
+  width: 250px; /* Increased from 200px */
+  height: 250px; /* Increased from 200px */
+  border: 3px dashed rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  position: relative;
+  animation: pulse 2s infinite;
+}
+
+/* Remove the guide-text styles since we're not showing the message */
+.guide-text {
+  display: none; /* Hide the obstructive message */
+}
+
+.checking-position {
+  display: none; /* Hide checking position message */
+}
+
+.position-good {
+  display: none; /* Hide position good message */
+}
+
+.status-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.status-indicator.not-centered {
+  background: rgba(255, 193, 7, 0.2);
+  color: #FF8F00;
+  border: 2px solid rgba(255, 193, 7, 0.3);
+}
+
+.status-indicator.centered {
+  background: rgba(76, 175, 80, 0.2);
+  color: #4CAF50;
+  border: 2px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.status-indicator.not-centered .status-dot {
+  background: #FF8F00;
+  animation: blink 1.5s infinite;
+}
+
+.status-indicator.centered .status-dot {
+  background: #4CAF50;
+  animation: none;
+}
+
+.actions-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.go-to-learning-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 1.2rem 3rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 280px;
+  justify-content: center;
+}
+
+.go-to-learning-btn.disabled {
+  background: linear-gradient(135deg, #bbb, #999);
+  color: #666;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.go-to-learning-btn.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.go-to-learning-btn.active:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+}
+
+.go-to-learning-btn.active:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+}
+
+.arrow {
+  font-size: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.go-to-learning-btn.active:hover .arrow {
+  transform: translateX(4px);
+}
+
+.lock {
+  font-size: 1.2rem;
+  opacity: 0.7;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes successFlash {
+  0% {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+  8% {
+    background: rgba(76, 175, 80, 0.4);
+    border-color: #4CAF50;
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.7);
+  }
+  16% {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+  33% {
+    background: rgba(76, 175, 80, 0.4);
+    border-color: #4CAF50;
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.7);
+  }
+  41% {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+  58% {
+    background: rgba(76, 175, 80, 0.4);
+    border-color: #4CAF50;
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.7);
+  }
+  66% {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+  100% {
+    background: rgba(76, 175, 80, 0.1);
+    border-color: #4CAF50;
+    box-shadow: 0 0 30px rgba(76, 175, 80, 0.5);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0.3; }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .webcam-preview-content {
+    padding: 1rem;
+  }
+  
+  .webcam-preview-card {
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .webcam-preview-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .instruction-section h2 {
+    font-size: 1.5rem;
+  }
+  
+  .webcam-preview-container {
+    max-width: 90%; /* Allow more width on mobile */
+  }
+  
+  .guide-circle {
+    width: 200px; /* Increased from 150px */
+    height: 200px; /* Increased from 150px */
+  }
+  
+  .go-to-learning-btn {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    min-width: 240px;
+  }
+}
+
+@media (max-width: 480px) {
+  .webcam-preview-card {
+    padding: 1.5rem;
+  }
+  
+  .instruction-icon {
+    font-size: 2rem;
+  }
+  
+  .guide-circle {
+    width: 180px; /* Increased from 120px */
+    height: 180px; /* Increased from 120px */
+  }
+  
+  .webcam-preview-container {
+    max-width: 95%; /* Allow even more width on small screens */
+  }
+}
