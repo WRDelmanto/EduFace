@@ -1,18 +1,49 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import socket from '../services/socket';
 import '../styles/WebcamPreview.css';
-import webcamPreviewAudio from '../assets/WebcamPreview.mp3'; // Add this import
+import webcamPreviewAudio from '../assets/WebcamPreview.mp3';
 
 const WebcamPreview: React.FC = () => {
   const [isCentered, setIsCentered] = useState(false);
   const [showSuccessFlash, setShowSuccessFlash] = useState(false);
+  const [showErrorFlash, setShowErrorFlash] = useState(false); // Add error flash state
   const [countdown, setCountdown] = useState(3);
   const [isCheckingPosition, setIsCheckingPosition] = useState(false);
+  const [faceDetected, setFaceDetected] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement>(null); // Add audio ref
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const frameIntervalRef = useRef<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Setup socket listeners
+    const setupSocket = () => {
+      // Listen for frame analysis results
+      socket.rawSocket.on('frame_received', (data) => {
+        console.log('Frame analysis result:', data);
+        const hasDetectedFace = data.hasDetectedFace === 'true';
+        setFaceDetected(hasDetectedFace);
+        
+        // If face is detected and we're not already checking position, start countdown
+        if (hasDetectedFace && !isCheckingPosition && !isCentered) {
+          startCenteringCountdown();
+        }
+        
+        // If face is not detected, reset centered state and show error flash
+        if (!hasDetectedFace) {
+          setIsCentered(false);
+          setIsCheckingPosition(false);
+          setShowSuccessFlash(false);
+          
+          // Show red flash when face is not detected
+          setShowErrorFlash(true);
+          setTimeout(() => setShowErrorFlash(false), 1000);
+        }
+      });
+    };
+
     // Start webcam
     const startWebcam = async () => {
       try {
@@ -25,13 +56,16 @@ const WebcamPreview: React.FC = () => {
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current?.play();
+            // Start sending frames to backend after video loads
+            startFrameCapture();
+          };
         }
       } catch (error) {
         console.error('Error accessing webcam:', error);
       }
     };
-
-    startWebcam();
 
     // Play audio when page loads
     const playAudio = () => {
@@ -42,7 +76,8 @@ const WebcamPreview: React.FC = () => {
       }
     };
 
-    // Small delay to ensure audio is loaded
+    setupSocket();
+    startWebcam();
     setTimeout(playAudio, 500);
 
     // Cleanup function
@@ -51,46 +86,78 @@ const WebcamPreview: React.FC = () => {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
       }
-      // Stop audio when component unmounts
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
+      if (frameIntervalRef.current) {
+        clearInterval(frameIntervalRef.current);
+      }
+      // Clean up socket listeners
+      socket.rawSocket.off('frame_received');
     };
   }, []);
 
-  useEffect(() => {
-    // Start position checking after component mounts
-    const timer = setTimeout(() => {
-      setIsCheckingPosition(true);
+  const startFrameCapture = () => {
+    if (frameIntervalRef.current) {
+      clearInterval(frameIntervalRef.current);
+    }
+    
+    frameIntervalRef.current = setInterval(() => {
+      captureAndSendFrame();
+    }, 2000); // Send frame every 2 seconds
+  };
+
+  const captureAndSendFrame = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
       
-      // Simulate centering detection with countdown
-      const countdownInterval = setInterval(() => {
-        setCountdown(prev => {
-          if (prev <= 1) {
-            clearInterval(countdownInterval);
-            // Flash green and enable button
-            setShowSuccessFlash(true);
-            setIsCentered(true);
-            setIsCheckingPosition(false);
-            
-            // Remove flash after 3 seconds (updated for 3 flashes)
-            setTimeout(() => setShowSuccessFlash(false), 3000);
-            
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      if (ctx) {
+        // Set canvas size to match video
+        canvas.width = videoRef.current.videoWidth;
+        canvas.height = videoRef.current.videoHeight;
+        
+        // Draw video frame to canvas
+        ctx.drawImage(videoRef.current, 0, 0);
+        
+        // Convert canvas to base64 image
+        const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+        const base64Data = dataURL.split(',')[1];
+        
+        // Send frame to backend
+        socket.emit('frame', base64Data);
+      }
+    }
+  };
 
-      return () => clearInterval(countdownInterval);
+  const startCenteringCountdown = () => {
+    if (isCheckingPosition) return; // Prevent multiple countdowns
+    
+    setIsCheckingPosition(true);
+    setCountdown(3);
+    
+    const countdownInterval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev <= 1) {
+          clearInterval(countdownInterval);
+          // Flash green and enable button
+          setShowSuccessFlash(true);
+          setIsCentered(true);
+          setIsCheckingPosition(false);
+          
+          // Remove flash after 3 seconds
+          setTimeout(() => setShowSuccessFlash(false), 3000);
+          
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  };
 
   const handleGoToLearning = () => {
-    if (isCentered) {
+    if (isCentered && faceDetected) { // Updated condition
       navigate('/session');
     }
   };
@@ -107,6 +174,9 @@ const WebcamPreview: React.FC = () => {
         Your browser does not support the audio element.
       </audio>
 
+      {/* Hidden canvas for frame capture */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
+
       <div className="webcam-preview-header">
         <h1>Webcam Setup</h1>
         <p>Please center yourself in the frame to continue</p>
@@ -118,9 +188,25 @@ const WebcamPreview: React.FC = () => {
             <div className="instruction-icon">📹</div>
             <h2>Position Yourself</h2>
             <p>Make sure your face is clearly visible and centered in the webcam preview below.</p>
+            
+            {/* Face detection status indicator */}
+            <div className="face-detection-status" style={{
+              marginTop: '8px',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              backgroundColor: faceDetected ? '#4CAF50' : '#f44336', // Red when no face
+              color: 'white',
+              fontSize: '12px',
+              textAlign: 'center'
+            }}>
+              {faceDetected ? 'Face detected ✓' : 'No face detected ✗'}
+            </div>
           </div>
 
-          <div className={`webcam-preview-container ${showSuccessFlash ? 'success-flash' : ''}`}>
+          <div className={`webcam-preview-container ${
+            showSuccessFlash ? 'success-flash' : 
+            showErrorFlash ? 'error-flash' : ''
+          }`}>
             <video
               ref={videoRef}
               autoPlay
@@ -138,32 +224,44 @@ const WebcamPreview: React.FC = () => {
                     <div className="spinner"></div>
                     <span>Checking position... {countdown}s</span>
                   </div>
-                ) : isCentered ? (
+                ) : isCentered && faceDetected ? (
                   <div className="position-good">
                     <div className="success-icon">✓</div>
                     <span>Perfect! You're centered</span>
                   </div>
                 ) : (
-                  <span>Center yourself in the frame</span>
+                  <span>
+                    {!faceDetected 
+                      ? 'Please show your face to the camera' 
+                      : 'Center yourself in the frame'
+                    }
+                  </span>
                 )}
               </div>
             </div>
           </div>
 
           <div className="status-section">
-            <div className={`status-indicator ${isCentered ? 'centered' : 'not-centered'}`}>
+            <div className={`status-indicator ${(isCentered && faceDetected) ? 'centered' : 'not-centered'}`}>
               <div className="status-dot"></div>
-              <span>{isCentered ? 'Ready to start' : 'Please center yourself'}</span>
+              <span>
+                {!faceDetected 
+                  ? 'Show your face to the camera' 
+                  : isCentered 
+                    ? 'Ready to start' 
+                    : 'Please center yourself'
+                }
+              </span>
             </div>
           </div>
 
           <div className="actions-section">
             <button 
-              className={`go-to-learning-btn ${isCentered ? 'active' : 'disabled'}`}
+              className={`go-to-learning-btn ${(isCentered && faceDetected) ? 'active' : 'disabled'}`}
               onClick={handleGoToLearning}
-              disabled={!isCentered}
+              disabled={!isCentered || !faceDetected} // Disabled when no face or not centered
             >
-              {isCentered ? (
+              {(isCentered && faceDetected) ? (
                 <>
                   <span>Go to Learning Session</span>
                   <span className="arrow">→</span>

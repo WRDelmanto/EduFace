@@ -331,6 +331,16 @@
   51%, 100% { opacity: 0.3; }
 }
 
+.error-flash {
+  animation: errorFlash 1s ease-in-out;
+}
+
+@keyframes errorFlash {
+  0% { border: 3px solid transparent; }
+  50% { border: 3px solid #f44336; box-shadow: 0 0 20px rgba(244, 67, 54, 0.5); }
+  100% { border: 3px solid transparent; }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .webcam-preview-content {

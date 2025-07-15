@@ -13,6 +13,7 @@ interface LearningVideoProps {
   showCountdown: boolean;
   onBeginLearning: () => void;
   onCountdownComplete: () => void;
+  pausedForFace?: boolean; // Add this prop
 }
 
 const LearningVideo: React.FC<LearningVideoProps> = ({
@@ -20,7 +21,8 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
   showWelcomeOverlay,
   showCountdown,
   onBeginLearning,
-  onCountdownComplete
+  onCountdownComplete,
+  pausedForFace // Destructure the new prop
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [countdown, setCountdown] = useState(3);
@@ -128,6 +130,16 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (pausedForFace) {
+        videoRef.current.pause();
+      } else if (canStart && !showWelcomeOverlay && !showCountdown) {
+        videoRef.current.play();
+      }
+    }
+  }, [pausedForFace, canStart, showWelcomeOverlay, showCountdown]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
