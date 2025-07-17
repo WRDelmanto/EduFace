@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 interface CountdownOverlayProps {
   onComplete: () => void;
-  isActive?: boolean; // Make this optional
+  isActive?: boolean;
 }
 
 const CountdownOverlay: React.FC<CountdownOverlayProps> = ({ onComplete, isActive = true }) => {
@@ -10,7 +10,10 @@ const CountdownOverlay: React.FC<CountdownOverlayProps> = ({ onComplete, isActiv
 
   useEffect(() => {
     // Only start countdown if isActive is true
-    if (!isActive) return;
+    if (!isActive) {
+      setCount(3); // Reset count when not active
+      return;
+    }
 
     // Reset count when becoming active
     setCount(3);
@@ -19,7 +22,9 @@ const CountdownOverlay: React.FC<CountdownOverlayProps> = ({ onComplete, isActiv
       setCount(prevCount => {
         if (prevCount <= 1) {
           clearInterval(countdown);
-          setTimeout(onComplete, 500);
+          setTimeout(() => {
+            onComplete();
+          }, 500);
           return 0;
         }
         return prevCount - 1;
@@ -27,10 +32,10 @@ const CountdownOverlay: React.FC<CountdownOverlayProps> = ({ onComplete, isActiv
     }, 1000);
 
     return () => clearInterval(countdown);
-  }, [onComplete, isActive]);
+  }, [isActive]); // Remove onComplete from dependencies to prevent infinite re-renders
 
-  // Don't render if not active or count is 0
-  if (!isActive || count === 0) {
+  // Don't render if not active
+  if (!isActive) {
     return null;
   }
 

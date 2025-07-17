@@ -14,6 +14,13 @@ interface DebugPanelProps {
   hasDetectedFace?: boolean;
   emotions?: any;
   testConnection?: () => void;
+  rewindCooldown?: number;
+  pauseReflectCooldown?: number;
+  slowPlaybackCooldown?: number;
+  summaryCooldown?: number;
+  encouragementCooldown?: number;
+  questionCooldown?: number;
+  learningState?: string; // <-- add this
 }
 
 const DebugPanel: React.FC<DebugPanelProps> = ({
@@ -29,6 +36,13 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   hasDetectedFace = false,
   emotions = null,
   testConnection,
+  rewindCooldown = 0,
+  pauseReflectCooldown = 0,
+  slowPlaybackCooldown = 0,
+  summaryCooldown = 0,
+  encouragementCooldown = 0,
+  questionCooldown = 0,
+  learningState = 'unknown', // <-- add this
 }) => {
   // Format duration for display
   const formatDuration = (ms: number): string => {
@@ -62,15 +76,17 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
               </strong>
             </div>
           </div>
-          {emotions && (
+          {emotions && Object.keys(emotions).length > 0 && (
             <div>
               <h5>Detailed Emotions:</h5>
               <div className="emotions-grid">
                 {Object.entries(emotions).map(([emotion, confidence]) => {
-                  const percentage = typeof confidence === 'number' 
-                    ? confidence > 1 
-                      ? confidence.toFixed(1)
-                      : (confidence * 100).toFixed(1)
+                  const percentage = hasDetectedFace 
+                    ? (typeof confidence === 'number' 
+                        ? confidence > 1 
+                          ? confidence.toFixed(1)
+                          : (confidence * 100).toFixed(1)
+                        : '0.0')
                     : '0.0';
                   
                   return (
@@ -87,12 +103,57 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 
         {/* Current Emotion - Complete */}
         <div className="emotion-display">
-          <h4>Current Emotion:</h4>
+          <h4>Current Basic Emotion:</h4>
           <div className="emotion-value">
-            {dominantEmotion ? 
+            {dominantEmotion && hasDetectedFace ? 
               `${dominantEmotion} (${formatDuration(emotionDuration)})` : 
               'No emotion detected'
             }
+          </div>
+          <h4 style={{ marginTop: 12 }}>Current Learner Emotion:</h4>
+          <div className="emotion-value">
+            {learningState && hasDetectedFace ? learningState : 'N/A'}
+          </div>
+        </div>
+
+        {/* Adaptation Cooldowns */}
+        <div className="emotion-cooldowns">
+          <h4>Adaptation Cooldowns:</h4>
+          <div className="cooldown-item">
+            <span>Rewind:</span>
+            <span className={rewindCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
+              {rewindCooldown > 0 ? formatDuration(rewindCooldown) : 'Ready'}
+            </span>
+          </div>
+          <div className="cooldown-item">
+            <span>Pause & Reflect:</span>
+            <span className={pauseReflectCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
+              {pauseReflectCooldown > 0 ? formatDuration(pauseReflectCooldown) : 'Ready'}
+            </span>
+          </div>
+          <div className="cooldown-item">
+            <span>Slow Playback:</span>
+            <span className={slowPlaybackCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
+              {slowPlaybackCooldown > 0 ? formatDuration(slowPlaybackCooldown) : 'Ready'}
+            </span>
+          </div>
+          <div className="cooldown-item">
+            <span>Summary:</span>
+            <span className={summaryCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
+              {summaryCooldown > 0 ? formatDuration(summaryCooldown) : 'Ready'}
+            </span>
+          </div>
+          <div className="cooldown-item">
+            <span>Encouragement:</span>
+            <span className={encouragementCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
+              {encouragementCooldown > 0 ? formatDuration(encouragementCooldown) : 'Ready'}
+            </span>
+          </div>
+          <div className="cooldown-item">
+            <span>Question:</span>
+            <span className={questionCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
+              {questionCooldown > 0 ? formatDuration(questionCooldown) : 'Ready'}
+            </span>
           </div>
         </div>
 
@@ -120,4 +181,3 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 };
 
 export default DebugPanel;
-       

@@ -30,6 +30,9 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [countdown, setCountdown] = useState(3);
+  const [encouragingMessage, setEncouragingMessage] = useState('');
+  const [correctMessage, setCorrectMessage] = useState('');
+  const [incorrectMessage, setIncorrectMessage] = useState('');
   
   const { setVideoRef: setRewindVideoRef, isRewinding, currentCheckpoint: rewindCheckpoint } = useRewind();
   const { setVideoRef: setPauseVideoRef, isPaused, timeLeft, currentCheckpoint: pauseCheckpoint } = usePauseReflect();
@@ -112,6 +115,29 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
     ];
     return messages[Math.floor(Math.random() * messages.length)];
   };
+
+  // Set encouraging message once when question becomes active
+  useEffect(() => {
+    if (isQuestionActive && currentQuestion && !encouragingMessage) {
+      setEncouragingMessage(getEncouragingMessages());
+    } else if (!isQuestionActive) {
+      setEncouragingMessage('');
+    }
+  }, [isQuestionActive, currentQuestion, encouragingMessage]);
+
+  // Set result messages once when explanation shows
+  useEffect(() => {
+    if (showExplanation && !correctMessage && !incorrectMessage) {
+      if (isCorrect) {
+        setCorrectMessage(getCorrectMessages());
+      } else {
+        setIncorrectMessage(getIncorrectMessages());
+      }
+    } else if (!showExplanation) {
+      setCorrectMessage('');
+      setIncorrectMessage('');
+    }
+  }, [showExplanation, isCorrect, correctMessage, incorrectMessage]);
 
   const getCorrectMessages = () => {
     const messages = [
@@ -248,7 +274,7 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
                 <div className="encouraging-header">
                   <div className="encouraging-icon">✨</div>
                   <div className="encouraging-text">
-                    {getEncouragingMessages()}
+                    {encouragingMessage}
                   </div>
                   {questionCheckpoint && (
                     <div className="topic-indicator">
@@ -295,7 +321,7 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
                   {isCorrect ? '✅' : '❌'}
                 </div>
                 <div className="result-text">
-                  {isCorrect ? getCorrectMessages() : getIncorrectMessages()}
+                  {isCorrect ? correctMessage : incorrectMessage}
                 </div>
                 <div className="explanation-text">
                   {currentQuestion.explanation}

@@ -11,9 +11,10 @@ interface Message {
 
 interface MessageBoxProps {
   messages: Message[];
+  onClearMessages?: () => void;
 }
 
-const MessageBox: React.FC<MessageBoxProps> = ({ messages }) => {
+const MessageBox: React.FC<MessageBoxProps> = ({ messages, onClearMessages }) => {
   const messageEndRef = useRef<HTMLDivElement>(null);
 
   const playNotificationSound = () => {
@@ -37,6 +38,17 @@ const MessageBox: React.FC<MessageBoxProps> = ({ messages }) => {
 
   return (
     <div className="message-feed">
+      {/* Clear Messages Button */}
+      {messages.length > 0 && onClearMessages && (
+        <button 
+          className="clear-messages-btn"
+          onClick={onClearMessages}
+          title="Clear all messages"
+        >
+          ✕
+        </button>
+      )}
+      
       {reversedMessages.length === 0 ? (
         <div className="message-bubble system">
           Welcome! Messages will appear here.

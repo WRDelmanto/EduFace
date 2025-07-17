@@ -13,6 +13,25 @@ import socket from '../services/socket'; // Add socket import
 import beginAudio from '../assets/begin.mp3';
 import '../styles/LearningPage.css';
 
+// Map basic emotion to learning state
+function mapEmotionToLearningState(emotion: string): string {
+  switch (emotion.toLowerCase()) {
+    case 'happy':
+    case 'surprise':
+      return 'engagement';
+    case 'neutral':
+    case 'disgust':
+      return 'disengagement';
+    case 'sad':
+    case 'fear':
+      return 'confusion';
+    case 'angry':
+      return 'frustration';
+    default:
+      return 'engagement'; // Default to engagement for unknown emotions
+  }
+}
+
 const LearningPage: React.FC = () => {
   const [showWelcomeOverlay, setShowWelcomeOverlay] = useState(true);
   const [showCountdown, setShowCountdown] = useState(false);
@@ -243,8 +262,21 @@ const LearningContent: React.FC<{
   const [emotionStartTime, setEmotionStartTime] = useState<number | null>(null);
   const [persistentEmotion, setPersistentEmotion] = useState<string>('');
   const [emotionDuration, setEmotionDuration] = useState<number>(0);
+  const [rewindCooldown, setRewindCooldown] = useState<number>(0);
+  const [pauseReflectCooldown, setPauseReflectCooldown] = useState<number>(0);
+  const [slowPlaybackCooldown, setSlowPlaybackCooldown] = useState<number>(0);
+  const [summaryCooldown, setSummaryCooldown] = useState<number>(0);
+  const [encouragementCooldown, setEncouragementCooldown] = useState<number>(0);
+  const [questionCooldown, setQuestionCooldown] = useState<number>(0);
+  const [lastRewindTrigger, setLastRewindTrigger] = useState<number>(0);
+  const [lastPauseReflectTrigger, setLastPauseReflectTrigger] = useState<number>(0);
+  const [lastSlowPlaybackTrigger, setLastSlowPlaybackTrigger] = useState<number>(0);
+  const [lastSummaryTrigger, setLastSummaryTrigger] = useState<number>(0);
+  const [lastEncouragementTrigger, setLastEncouragementTrigger] = useState<number>(0);
+  const [lastQuestionTrigger, setLastQuestionTrigger] = useState<number>(0);
   const emotionCheckIntervalRef = useRef<number | null>(null);
   const durationUpdateIntervalRef = useRef<number | null>(null);
+  const cooldownUpdateIntervalRef = useRef<number | null>(null);
   const emotionStartTimeRef = useRef<number | null>(null);
   const videoStartTimeRef = useRef<number | null>(null);
   const persistentEmotionRef = useRef<string>('');
@@ -256,6 +288,16 @@ const LearningContent: React.FC<{
     emotions: null,
     testConnection: () => {}
   });
+
+  const [messageList, setMessageList] = useState(messages);
+
+  useEffect(() => {
+    setMessageList(messages);
+  }, [messages]);
+
+  const clearMessages = () => {
+    setMessageList([]);
+  };
 
   // Set video start time when video can start
   useEffect(() => {
@@ -309,6 +351,63 @@ const LearningContent: React.FC<{
 
   }, [dominantEmotion, persistentEmotion]);
 
+  // Track cooldown timers for all adaptations
+  useEffect(() => {
+    if (cooldownUpdateIntervalRef.current) {
+      clearInterval(cooldownUpdateIntervalRef.current);
+    }
+
+    cooldownUpdateIntervalRef.current = setInterval(() => {
+      const currentTime = Date.now();
+      const reactionCooldown = 30 * 1000; // 30 seconds
+
+      // Update all adaptation cooldowns
+      setRewindCooldown(Math.max(0, reactionCooldown - (currentTime - lastRewindTrigger)));
+      setPauseReflectCooldown(Math.max(0, reactionCooldown - (currentTime - lastPauseReflectTrigger)));
+      setSlowPlaybackCooldown(Math.max(0, reactionCooldown - (currentTime - lastSlowPlaybackTrigger)));
+      setSummaryCooldown(Math.max(0, reactionCooldown - (currentTime - lastSummaryTrigger)));
+      setEncouragementCooldown(Math.max(0, reactionCooldown - (currentTime - lastEncouragementTrigger)));
+      setQuestionCooldown(Math.max(0, reactionCooldown - (currentTime - lastQuestionTrigger)));
+    }, 100);
+
+    return () => {
+      if (cooldownUpdateIntervalRef.current) {
+        clearInterval(cooldownUpdateIntervalRef.current);
+      }
+    };
+  }, [lastRewindTrigger, lastPauseReflectTrigger, lastSlowPlaybackTrigger, lastSummaryTrigger, lastEncouragementTrigger, lastQuestionTrigger]);
+
+  // Wrap adaptation triggers to track timing
+  const wrappedTriggerRewind = () => {
+    setLastRewindTrigger(Date.now());
+    triggerRewind();
+  };
+
+  const wrappedTriggerPauseReflect = () => {
+    setLastPauseReflectTrigger(Date.now());
+    triggerPauseReflect();
+  };
+
+  const wrappedTriggerSlowPlayback = () => {
+    setLastSlowPlaybackTrigger(Date.now());
+    triggerSlowPlayback();
+  };
+
+  const wrappedTriggerSummary = () => {
+    setLastSummaryTrigger(Date.now());
+    triggerSummary();
+  };
+
+  const wrappedTriggerEncouragement = () => {
+    setLastEncouragementTrigger(Date.now());
+    triggerEncouragement();
+  };
+
+  const wrappedTriggerQuestion = () => {
+    setLastQuestionTrigger(Date.now());
+    triggerQuestion();
+  };
+
   // Separate microadaptation logic
   useEffect(() => {
     if (emotionCheckIntervalRef.current) {
@@ -324,34 +423,47 @@ const LearningContent: React.FC<{
       const oneMinute = 60 * 1000;
       const reactionCooldown = 30 * 1000;
 
-      // Only react to emotions after 1 minute of video playback
       if (videoElapsedTime < oneMinute) return;
 
-      // Prevent too frequent reactions (30 second cooldown)
-      if (currentTime - lastEmotionReactionTime < reactionCooldown) return;
+      // Map the persistent emotion to learning state
+      const learningState = mapEmotionToLearningState(persistentEmotionRef.current);
 
-      // React to happiness with encouragement (3 seconds threshold)
-      if (persistentEmotionRef.current.toLowerCase() === 'happiness' || persistentEmotionRef.current.toLowerCase() === 'happy') {
-        const happinessThreshold = 3 * 1000; // 3 seconds for happiness
-        if (emotionDuration >= happinessThreshold) {
-          console.log('Triggering encouragement for happiness after', emotionDuration, 'ms');
-          triggerEncouragement();
+      // --- Adaptation logic based on learning state ---
+      if (learningState === 'engagement') {
+        // Encourage after 3s of engagement
+        if (emotionDuration >= 3 * 1000 && (currentTime - lastEncouragementTrigger) >= reactionCooldown) {
+          wrappedTriggerEncouragement();
           setLastEmotionReactionTime(currentTime);
-          // Reset emotion tracking
           emotionStartTimeRef.current = null;
           persistentEmotionRef.current = '';
           setPersistentEmotion('');
           setEmotionStartTime(null);
         }
-      }
-      // React to sadness with pause and reflect (10 seconds threshold)
-      else if (persistentEmotionRef.current.toLowerCase() === 'sadness' || persistentEmotionRef.current.toLowerCase() === 'sad') {
-        const sadnessThreshold = 10 * 1000; // 10 seconds for sadness
-        if (emotionDuration >= sadnessThreshold) {
-          console.log('Triggering pause & reflect for sadness after', emotionDuration, 'ms');
-          triggerPauseReflect();
+      } else if (learningState === 'disengagement') {
+        // Ask a question after 5s of disengagement
+        if (emotionDuration >= 5 * 1000 && (currentTime - lastQuestionTrigger) >= reactionCooldown) {
+          wrappedTriggerQuestion();
           setLastEmotionReactionTime(currentTime);
-          // Reset emotion tracking
+          emotionStartTimeRef.current = null;
+          persistentEmotionRef.current = '';
+          setPersistentEmotion('');
+          setEmotionStartTime(null);
+        }
+      } else if (learningState === 'confusion') {
+        // Slow playback after 7s of confusion
+        if (emotionDuration >= 7 * 1000 && (currentTime - lastSlowPlaybackTrigger) >= reactionCooldown) {
+          wrappedTriggerSlowPlayback();
+          setLastEmotionReactionTime(currentTime);
+          emotionStartTimeRef.current = null;
+          persistentEmotionRef.current = '';
+          setPersistentEmotion('');
+          setEmotionStartTime(null);
+        }
+      } else if (learningState === 'frustration') {
+        // Pause and reflect after 10s of frustration
+        if (emotionDuration >= 10 * 1000 && (currentTime - lastPauseReflectTrigger) >= reactionCooldown) {
+          wrappedTriggerPauseReflect();
+          setLastEmotionReactionTime(currentTime);
           emotionStartTimeRef.current = null;
           persistentEmotionRef.current = '';
           setPersistentEmotion('');
@@ -365,7 +477,16 @@ const LearningContent: React.FC<{
         clearInterval(emotionCheckIntervalRef.current);
       }
     };
-  }, [triggerEncouragement, triggerPauseReflect, lastEmotionReactionTime]);
+  }, [
+    triggerEncouragement,
+    triggerPauseReflect,
+    triggerQuestion,
+    triggerSlowPlayback,
+    lastEncouragementTrigger,
+    lastPauseReflectTrigger,
+    lastQuestionTrigger,
+    lastSlowPlaybackTrigger
+  ]);
 
   // Cleanup intervals on component unmount
   useEffect(() => {
@@ -376,14 +497,27 @@ const LearningContent: React.FC<{
       if (durationUpdateIntervalRef.current) {
         clearInterval(durationUpdateIntervalRef.current);
       }
+      if (cooldownUpdateIntervalRef.current) {
+        clearInterval(cooldownUpdateIntervalRef.current);
+      }
     };
   }, []);
+
+  // Map dominantEmotion to learning state
+  const learningState = mapEmotionToLearningState(dominantEmotion);
+
+  // You can use learningState in your UI, logs, or logic
+  useEffect(() => {
+    if (learningState !== 'unknown') {
+      console.log('Learning State:', learningState);
+    }
+  }, [learningState]);
 
   return (
     <>
       {/* Debug Panel Toggle - Top Right */}
       <div className="debug-toggle">
-        <span>Debug Panel</span>
+        <span>Admin Panel</span>
         <label className="toggle-switch">
           <input
             type="checkbox"
@@ -409,7 +543,7 @@ const LearningContent: React.FC<{
           </div>
         </div>
         
-        <MessageBox messages={messages} />
+        <MessageBox messages={messageList} onClearMessages={clearMessages} />
       </div>
 
       {/* Right Panel: Video and Message Feed */}
@@ -433,25 +567,32 @@ const LearningContent: React.FC<{
             setShowFaceDetectionOverlay(false);
             setVideoPausedForFace(false);
           }}
-          triggerRewind={triggerRewind} // Now this works!
+          triggerRewind={wrappedTriggerRewind}
         />
       )}
       
       {/* Debug Panel for Testing Microadaptations */}
       {showDebugPanel && (
         <DebugPanel
-          triggerRewind={triggerRewind}
-          triggerPauseReflect={triggerPauseReflect}
-          triggerSlowPlayback={triggerSlowPlayback}
-          triggerSummary={triggerSummary}
-          triggerEncouragement={triggerEncouragement}
-          triggerQuestion={triggerQuestion}
+          triggerRewind={wrappedTriggerRewind}
+          triggerPauseReflect={wrappedTriggerPauseReflect}
+          triggerSlowPlayback={wrappedTriggerSlowPlayback}
+          triggerSummary={wrappedTriggerSummary}
+          triggerEncouragement={wrappedTriggerEncouragement}
+          triggerQuestion={wrappedTriggerQuestion}
           dominantEmotion={dominantEmotion}
           emotionDuration={emotionDuration}
           isConnected={webcamAnalysis.isConnected}
           hasDetectedFace={webcamAnalysis.hasDetectedFace}
           emotions={webcamAnalysis.emotions}
           testConnection={webcamAnalysis.testConnection}
+          rewindCooldown={rewindCooldown}
+          pauseReflectCooldown={pauseReflectCooldown}
+          slowPlaybackCooldown={slowPlaybackCooldown}
+          summaryCooldown={summaryCooldown}
+          encouragementCooldown={encouragementCooldown}
+          questionCooldown={questionCooldown}
+          learningState={learningState} // <-- add this line
         />
       )}
     </>

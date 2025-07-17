@@ -167,3 +167,37 @@
   background-color: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
 }
+
+.emotion-cooldowns {
+  flex: 0 0 200px;
+  color: white;
+}
+
+.emotion-cooldowns h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.cooldown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.cooldown-item span:first-child {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cooldown-active {
+  color: #f44336;
+  font-weight: bold;
+}
+
+.cooldown-ready {
+  color: #4CAF50;
+  font-weight: bold;
+}
