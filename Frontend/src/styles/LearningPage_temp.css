@@ -282,6 +282,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* ===== Debug Panel ===== */
 /* ===== Emotion Panel ===== */
 .emotion-panel {
   background: rgba(255, 255, 255, 0.1);
@@ -335,6 +336,7 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* ===== Debug Panel ===== */
 /* ===== Emotion Panel ===== */
 .emotion-panel {
   background: rgba(255, 255, 255, 0.1);
@@ -1339,70 +1341,6 @@
   100% {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
-}
-
-/* ===== Debug Panel Toggle ===== */
-.debug-toggle {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  padding: 8px 12px;
-  color: white;
-  font-size: 12px;
-}
-
-.toggle-switch {
-  position: relative;
-  display: inline-block;
-  width: 40px;
-  height: 20px;
-  cursor: pointer;
-}
-
-.toggle-input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  transition: 0.4s;
-  border-radius: 20px;
-}
-
-.toggle-input:checked + .toggle-slider {
-  background-color: #4CAF50;
-}
-
-.toggle-knob {
-  position: absolute;
-  height: 16px;
-  width: 16px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: 0.4s;
-  border-radius: 50%;
-}
-
-.toggle-input:checked + .toggle-slider .toggle-knob {
-  transform: translateX(20px);
 }
 
 /* Responsive Design */

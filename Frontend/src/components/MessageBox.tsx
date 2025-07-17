@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import '../styles/LearningPage.css';
+import popSound from '../assets/pop.mp3';
 
 interface Message {
   id: number;
@@ -17,8 +18,8 @@ const MessageBox: React.FC<MessageBoxProps> = ({ messages }) => {
 
   const playNotificationSound = () => {
     try {
-      const audio = new Audio('/pop.mp3');
-      audio.volume = 0.05;
+      const audio = new Audio(popSound);
+      audio.volume = 0.9;
       audio.play();
     } catch (error) {
       console.log('Could not play notification sound:', error);

@@ -1,14 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import socket from '../services/socket';
 import '../styles/LearningPage.css';
 
-const WebcamBox: React.FC = () => {
+interface WebcamBoxProps {
+  onAnalysisUpdate?: (data: {
+    isConnected: boolean;
+    hasDetectedFace: boolean;
+    emotions: any;
+    testConnection: () => void;
+  }) => void;
+}
+
+const WebcamBox: React.FC<WebcamBoxProps> = ({ onAnalysisUpdate }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [emotions, setEmotions] = useState<any>(null);
   const [hasDetectedFace, setHasDetectedFace] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+
+  // Test connection
+  const testConnection = useCallback(() => {
+    socket.emit('ping', 'Hello from frontend!');
+  }, []);
 
   useEffect(() => {
     // Listen for connection events
@@ -29,7 +43,7 @@ const WebcamBox: React.FC = () => {
 
     // Listen for responses from the backend
     socket.rawSocket.on('frame_received', (data) => {
-        console.log('Frame analysis result:', data);
+        // console.log('Frame analysis result:', data);
         setHasDetectedFace(data.hasDetectedFace === 'true');
         if (data.emotions) {
             setEmotions(data.emotions);
@@ -52,6 +66,18 @@ const WebcamBox: React.FC = () => {
         socket.rawSocket.off('pong');
     };
   }, []);
+
+  useEffect(() => {
+    // Notify parent of analysis updates
+    if (onAnalysisUpdate) {
+      onAnalysisUpdate({
+        isConnected,
+        hasDetectedFace,
+        emotions,
+        testConnection,
+      });
+    }
+  }, [isConnected, hasDetectedFace, emotions, onAnalysisUpdate, testConnection]);
 
   const startWebcam = async () => {
     try {
@@ -90,11 +116,6 @@ const WebcamBox: React.FC = () => {
         socket.emit('frame', base64Data);
       }
     }
-  };
-
-  // Test connection
-  const testConnection = () => {
-    socket.emit('ping', 'Hello from frontend!');
   };
 
   return (
@@ -143,34 +164,6 @@ const WebcamBox: React.FC = () => {
       </div>
       
       <canvas ref={canvasRef} style={{ display: 'none' }} />
-      
-      <div className="analysis-results">
-        <p>Connection Status: {isConnected ? 'Connected' : 'Disconnected'}</p>
-        <p>Face Detected: {hasDetectedFace ? 'Yes' : 'No'}</p>
-        {emotions && (
-          <div>
-            <h4>Emotions:</h4>
-            <ul>
-              {Object.entries(emotions).map(([emotion, confidence]) => {
-                // Check if confidence is already a percentage (0-100) or a decimal (0-1)
-                const percentage = typeof confidence === 'number' 
-                  ? confidence > 1 
-                    ? confidence.toFixed(1) // Already a percentage
-                    : (confidence * 100).toFixed(1) // Convert from decimal to percentage
-                  : '0.0';
-                
-                return (
-                  <li key={emotion}>
-                    {emotion}: {percentage}%
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-      </div>
-      
-      <button onClick={testConnection}>Test Connection</button>
     </div>
   );
 };

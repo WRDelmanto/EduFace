@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import LearningVideo from '../components/LearningVideo';
 import MessageBox from '../components/MessageBox';
 import WebcamBox from '../components/WebcamBox';
+import DebugPanel from '../components/DebugPanel';
 import EncouragementHandler from '../microadaptations/EncouragementHandler';
 import RewindHandler, { useRewind } from '../microadaptations/RewindHandler';
 import PauseReflectHandler, { usePauseReflect } from '../microadaptations/PauseReflectHandler';
@@ -19,14 +20,60 @@ const LearningPage: React.FC = () => {
   const [faceDetected, setFaceDetected] = useState(true); // Track face detection
   const [showFaceDetectionOverlay, setShowFaceDetectionOverlay] = useState(false);
   const [videoPausedForFace, setVideoPausedForFace] = useState(false);
+  const [dominantEmotion, setDominantEmotion] = useState<string>(''); // Track dominant emotion
+  const [showDebugPanel, setShowDebugPanel] = useState(true); // Add debug panel visibility state
   const beginAudioRef = useRef<HTMLAudioElement>(null);
   const faceDetectionTimeoutRef = useRef<number | null>(null);
 
   // Add face detection monitoring
   useEffect(() => {
+    let lastEmotionLogTime = 0;
+    const EMOTION_LOG_THROTTLE = 2000; // Only log emotion changes every 2 seconds
+    
     const handleFaceDetection = (data: any) => {
       const hasDetectedFace = data.hasDetectedFace === 'true';
       setFaceDetected(hasDetectedFace);
+
+      let detectedEmotion = '';
+      
+      // Update dominant emotion if available - check multiple possible data structures
+      if (data.dominantEmotion) {
+        detectedEmotion = data.dominantEmotion;
+        setDominantEmotion(data.dominantEmotion);
+      } else if (data.emotion) {
+        detectedEmotion = data.emotion;
+        setDominantEmotion(data.emotion);
+      } else if (data.emotions && data.emotions.dominant) {
+        detectedEmotion = data.emotions.dominant;
+        setDominantEmotion(data.emotions.dominant);
+      } else if (data.emotions && typeof data.emotions === 'object') {
+        // Find the emotion with the highest confidence
+        const emotions = data.emotions;
+        let maxEmotion = '';
+        let maxConfidence = 0;
+        
+        for (const [emotion, confidence] of Object.entries(emotions)) {
+          if (typeof confidence === 'number' && confidence > maxConfidence) {
+            maxConfidence = confidence;
+            maxEmotion = emotion;
+          }
+        }
+        
+        if (maxEmotion) {
+          detectedEmotion = maxEmotion;
+          setDominantEmotion(maxEmotion);
+        }
+      }
+
+      // Throttle emotion logging to reduce console spam
+      const now = Date.now();
+      if (detectedEmotion && (now - lastEmotionLogTime) > EMOTION_LOG_THROTTLE) {
+        console.log('Current dominant emotion:', detectedEmotion);
+        lastEmotionLogTime = now;
+      }
+
+      // Log the data structure to debug
+      // console.log('Face detection data:', data);
 
       if (hasDetectedFace) {
         // Face detected - clear timeout and hide overlay
@@ -118,6 +165,9 @@ const LearningPage: React.FC = () => {
                       showFaceDetectionOverlay={showFaceDetectionOverlay}
                       setShowFaceDetectionOverlay={setShowFaceDetectionOverlay}
                       setVideoPausedForFace={setVideoPausedForFace}
+                      dominantEmotion={dominantEmotion}
+                      showDebugPanel={showDebugPanel}
+                      setShowDebugPanel={setShowDebugPanel}
                     />
                   )}
                 </EncouragementHandler>
@@ -144,6 +194,9 @@ const LearningContent: React.FC<{
   showFaceDetectionOverlay: boolean;
   setShowFaceDetectionOverlay: (show: boolean) => void;
   setVideoPausedForFace: (paused: boolean) => void;
+  dominantEmotion: string;
+  showDebugPanel: boolean;
+  setShowDebugPanel: (show: boolean) => void;
 }> = ({
   messages,
   triggerEncouragement,
@@ -156,7 +209,10 @@ const LearningContent: React.FC<{
   videoPausedForFace,
   showFaceDetectionOverlay,
   setShowFaceDetectionOverlay,
-  setVideoPausedForFace
+  setVideoPausedForFace,
+  dominantEmotion,
+  showDebugPanel,
+  setShowDebugPanel
 }) => {
   // Now we can use all the hooks inside the context
   const { triggerRewind, setMessageCallback: setRewindCallback } = useRewind();
@@ -165,38 +221,194 @@ const LearningContent: React.FC<{
   const { triggerSummary, setMessageCallback: setSummaryCallback } = useSummary();
   const { triggerSlowPlayback, setMessageCallback: setSlowPlaybackCallback } = useSlowPlayback();
 
+  // Set up message callbacks for microadaptations (only once)
+  React.useEffect(() => {
+    console.log('Setting up message callbacks');
+    
+    // Create throttled version of addMessage to prevent spam
+    const throttledAddMessage = (text: string, type?: 'system' | 'user' | 'encouragement' | 'rewind' | 'question') => {
+      console.log('Message callback called:', text, type);
+      addMessage(text, type);
+    };
+    
+    setQuestionCallback(throttledAddMessage);
+    setRewindCallback(throttledAddMessage);
+    setSummaryCallback(throttledAddMessage);
+    setSlowPlaybackCallback(throttledAddMessage);
+  }, []); // Remove dependencies to prevent constant re-setup
+
+  // Track when video actually starts and emotion reaction state
+  const [videoStartTime, setVideoStartTime] = useState<number | null>(null);
+  const [lastEmotionReactionTime, setLastEmotionReactionTime] = useState<number>(0);
+  const [emotionStartTime, setEmotionStartTime] = useState<number | null>(null);
+  const [persistentEmotion, setPersistentEmotion] = useState<string>('');
+  const [emotionDuration, setEmotionDuration] = useState<number>(0);
+  const emotionCheckIntervalRef = useRef<number | null>(null);
+  const durationUpdateIntervalRef = useRef<number | null>(null);
+  const emotionStartTimeRef = useRef<number | null>(null);
+  const videoStartTimeRef = useRef<number | null>(null);
+  const persistentEmotionRef = useRef<string>('');
+
+  // Add webcam analysis state
+  const [webcamAnalysis, setWebcamAnalysis] = useState({
+    isConnected: false,
+    hasDetectedFace: false,
+    emotions: null,
+    testConnection: () => {}
+  });
+
+  // Set video start time when video can start
   useEffect(() => {
-    // Connect handlers to the message system
-    setRewindCallback((message: string) => {
-      addMessage(message, 'rewind');
-    });
-    
-    setQuestionCallback((message: string) => {
-      addMessage(message, 'question');
-    });
-    
-    setSummaryCallback((message: string) => {
-      addMessage(message, 'system');
-    });
-    
-    setSlowPlaybackCallback((message: string) => {
-      addMessage(message, 'system');
-    });
-  }, [setRewindCallback, setQuestionCallback, setSummaryCallback, setSlowPlaybackCallback, addMessage]);
+    if (videoCanStart && !videoStartTime) {
+      const startTime = Date.now();
+      setVideoStartTime(startTime);
+      videoStartTimeRef.current = startTime;
+    }
+  }, [videoCanStart, videoStartTime]);
+
+  // Track emotion changes and start duration tracking
+  useEffect(() => {
+    if (!dominantEmotion) {
+      setEmotionStartTime(null);
+      emotionStartTimeRef.current = null;
+      setPersistentEmotion('');
+      persistentEmotionRef.current = '';
+      setEmotionDuration(0);
+      if (durationUpdateIntervalRef.current) {
+        clearInterval(durationUpdateIntervalRef.current);
+        durationUpdateIntervalRef.current = null;
+      }
+      return;
+    }
+
+    if (dominantEmotion === persistentEmotion) {
+      // Same emotion continuing - keep tracking
+      return;
+    }
+
+    // New emotion detected
+    setPersistentEmotion(dominantEmotion);
+    persistentEmotionRef.current = dominantEmotion;
+    const newStartTime = Date.now();
+    setEmotionStartTime(newStartTime);
+    emotionStartTimeRef.current = newStartTime;
+    setEmotionDuration(0);
+
+    // Clear existing duration interval
+    if (durationUpdateIntervalRef.current) {
+      clearInterval(durationUpdateIntervalRef.current);
+    }
+
+    // Start updating emotion duration every 500ms (instead of 100ms to reduce UI updates)
+    durationUpdateIntervalRef.current = setInterval(() => {
+      if (emotionStartTimeRef.current) {
+        const currentDuration = Date.now() - emotionStartTimeRef.current;
+        setEmotionDuration(currentDuration);
+      }
+    }, 500); // Reduced from 100ms to 500ms
+
+  }, [dominantEmotion, persistentEmotion]);
+
+  // Separate microadaptation logic
+  useEffect(() => {
+    if (emotionCheckIntervalRef.current) {
+      clearInterval(emotionCheckIntervalRef.current);
+    }
+
+    emotionCheckIntervalRef.current = setInterval(() => {
+      if (!videoStartTimeRef.current || !persistentEmotionRef.current || !emotionStartTimeRef.current) return;
+
+      const currentTime = Date.now();
+      const videoElapsedTime = currentTime - videoStartTimeRef.current;
+      const emotionDuration = currentTime - emotionStartTimeRef.current;
+      const oneMinute = 60 * 1000;
+      const reactionCooldown = 30 * 1000;
+
+      // Only react to emotions after 1 minute of video playback
+      if (videoElapsedTime < oneMinute) return;
+
+      // Prevent too frequent reactions (30 second cooldown)
+      if (currentTime - lastEmotionReactionTime < reactionCooldown) return;
+
+      // React to happiness with encouragement (3 seconds threshold)
+      if (persistentEmotionRef.current.toLowerCase() === 'happiness' || persistentEmotionRef.current.toLowerCase() === 'happy') {
+        const happinessThreshold = 3 * 1000; // 3 seconds for happiness
+        if (emotionDuration >= happinessThreshold) {
+          console.log('Triggering encouragement for happiness after', emotionDuration, 'ms');
+          triggerEncouragement();
+          setLastEmotionReactionTime(currentTime);
+          // Reset emotion tracking
+          emotionStartTimeRef.current = null;
+          persistentEmotionRef.current = '';
+          setPersistentEmotion('');
+          setEmotionStartTime(null);
+        }
+      }
+      // React to sadness with pause and reflect (10 seconds threshold)
+      else if (persistentEmotionRef.current.toLowerCase() === 'sadness' || persistentEmotionRef.current.toLowerCase() === 'sad') {
+        const sadnessThreshold = 10 * 1000; // 10 seconds for sadness
+        if (emotionDuration >= sadnessThreshold) {
+          console.log('Triggering pause & reflect for sadness after', emotionDuration, 'ms');
+          triggerPauseReflect();
+          setLastEmotionReactionTime(currentTime);
+          // Reset emotion tracking
+          emotionStartTimeRef.current = null;
+          persistentEmotionRef.current = '';
+          setPersistentEmotion('');
+          setEmotionStartTime(null);
+        }
+      }
+    }, 1000);
+
+    return () => {
+      if (emotionCheckIntervalRef.current) {
+        clearInterval(emotionCheckIntervalRef.current);
+      }
+    };
+  }, [triggerEncouragement, triggerPauseReflect, lastEmotionReactionTime]);
+
+  // Cleanup intervals on component unmount
+  useEffect(() => {
+    return () => {
+      if (emotionCheckIntervalRef.current) {
+        clearInterval(emotionCheckIntervalRef.current);
+      }
+      if (durationUpdateIntervalRef.current) {
+        clearInterval(durationUpdateIntervalRef.current);
+      }
+    };
+  }, []);
 
   return (
     <>
+      {/* Debug Panel Toggle - Top Right */}
+      <div className="debug-toggle">
+        <span>Debug Panel</span>
+        <label className="toggle-switch">
+          <input
+            type="checkbox"
+            checked={showDebugPanel}
+            onChange={(e) => setShowDebugPanel(e.target.checked)}
+            className="toggle-input"
+          />
+          <span className="toggle-slider">
+            <span className="toggle-knob" />
+          </span>
+        </label>
+      </div>
+
       {/* Left Panel: Webcam */}
       <div className="left-panel">
         <div className="user-video-wrapper-container">
           <div className="user-video-wrapper maximized">
             <div className="webcam-container">
               <div className="user-video">
-                <WebcamBox />
+                <WebcamBox onAnalysisUpdate={setWebcamAnalysis} />
               </div>
             </div>
           </div>
         </div>
+        
         <MessageBox messages={messages} />
       </div>
 
@@ -226,14 +438,22 @@ const LearningContent: React.FC<{
       )}
       
       {/* Debug Panel for Testing Microadaptations */}
-      <div className="debug-panel">
-        <button onClick={triggerRewind}>Rewind to Checkpoint</button>
-        <button onClick={triggerPauseReflect}>Pause & Reflect</button>
-        <button onClick={triggerSlowPlayback}>Slow Playback</button>
-        <button onClick={triggerSummary}>Show Summary</button>
-        <button onClick={triggerEncouragement}>Encourage</button>
-        <button onClick={triggerQuestion}>Ask Question</button>
-      </div>
+      {showDebugPanel && (
+        <DebugPanel
+          triggerRewind={triggerRewind}
+          triggerPauseReflect={triggerPauseReflect}
+          triggerSlowPlayback={triggerSlowPlayback}
+          triggerSummary={triggerSummary}
+          triggerEncouragement={triggerEncouragement}
+          triggerQuestion={triggerQuestion}
+          dominantEmotion={dominantEmotion}
+          emotionDuration={emotionDuration}
+          isConnected={webcamAnalysis.isConnected}
+          hasDetectedFace={webcamAnalysis.hasDetectedFace}
+          emotions={webcamAnalysis.emotions}
+          testConnection={webcamAnalysis.testConnection}
+        />
+      )}
     </>
   );
 };

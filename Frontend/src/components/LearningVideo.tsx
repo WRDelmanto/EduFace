@@ -14,6 +14,8 @@ interface LearningVideoProps {
   onBeginLearning: () => void;
   onCountdownComplete: () => void;
   pausedForFace?: boolean; // Add this prop
+  dominantEmotion?: string;
+  emotionPercentage?: number;
 }
 
 const LearningVideo: React.FC<LearningVideoProps> = ({
@@ -22,7 +24,9 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
   showCountdown,
   onBeginLearning,
   onCountdownComplete,
-  pausedForFace // Destructure the new prop
+  pausedForFace, // Destructure the new prop
+  dominantEmotion = '',
+  emotionPercentage = 0
 }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [countdown, setCountdown] = useState(3);
@@ -172,16 +176,7 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
 
       {/* Countdown Overlay */}
       {showCountdown && (
-        <div className="countdown-overlay">
-          <div className="countdown-content">
-            <div className="countdown-circle">
-              <div className="countdown-number">{countdown > 0 ? countdown : "▶️"}</div>
-            </div>
-            <div className="countdown-text">
-              {countdown > 0 ? "Get ready to learn!" : "Here we go!"}
-            </div>
-          </div>
-        </div>
+        <CountdownOverlay onComplete={onCountdownComplete} />
       )}
 
       {/* Rewind Overlay */}
