@@ -15,5 +15,6 @@ imageio<3.0,>=2.5
 imageio-ffmpeg>=0.2.0
 facenet-pytorch>=2.6.0
 ffmpeg==1.4
+websocket-client==1.8.0
 python-socketio[asgi]
 uvicorn
