@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useRef, useState } from 'react';
+import { findPreviousCheckpoint } from '../utils/checkpointUtils';
 
 interface Checkpoint {
   time: number;
@@ -56,20 +57,7 @@ const RewindHandler: React.FC<RewindHandlerProps> = ({ children }) => {
     messageCallbackRef.current = callback;
   };
 
-  const findPreviousCheckpoint = (currentTime: number) => {
-    // Find the closest checkpoint before the current time
-    let previousCheckpoint = checkpoints[0];
-    
-    for (let i = 0; i < checkpoints.length; i++) {
-      if (checkpoints[i].time < currentTime) {
-        previousCheckpoint = checkpoints[i];
-      } else {
-        break;
-      }
-    }
-    
-    return previousCheckpoint;
-  };
+  // Use shared findPreviousCheckpoint function
 
   const triggerRewind = () => {
     if (videoRef.current) {

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../styles/DebugPanel.css';
+import { logAdaptationMessage, downloadAdaptationLogs, startLogging, stopLogging, isLogging } from '../utils/adaptationLogger';
 
 interface DebugPanelProps {
   triggerRewind: () => void;
@@ -21,6 +22,26 @@ interface DebugPanelProps {
   encouragementCooldown?: number;
   questionCooldown?: number;
   learningState?: string; // <-- add this
+  adaptationMessage?: string;
+  globalCooldown?: number;
+  rewindEnabled: boolean;
+  setRewindEnabled: (enabled: boolean) => void;
+  pauseReflectEnabled: boolean;
+  setPauseReflectEnabled: (enabled: boolean) => void;
+  slowPlaybackEnabled: boolean;
+  setSlowPlaybackEnabled: (enabled: boolean) => void;
+  summaryEnabled: boolean;
+  setSummaryEnabled: (enabled: boolean) => void;
+  encouragementEnabled: boolean;
+  setEncouragementEnabled: (enabled: boolean) => void;
+  questionEnabled: boolean;
+  setQuestionEnabled: (enabled: boolean) => void;
+  pauseReflectCount?: number;
+  slowPlaybackCount?: number;
+  rewindCount?: number;
+  summaryCount?: number;
+  questionCount?: number;
+  encouragementCount?: number;
 }
 
 const DebugPanel: React.FC<DebugPanelProps> = ({
@@ -43,7 +64,28 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   encouragementCooldown = 0,
   questionCooldown = 0,
   learningState = 'unknown', // <-- add this
+  adaptationMessage = '',
+  globalCooldown = 0,
+  rewindEnabled,
+  setRewindEnabled,
+  pauseReflectEnabled,
+  setPauseReflectEnabled,
+  slowPlaybackEnabled,
+  setSlowPlaybackEnabled,
+  summaryEnabled,
+  setSummaryEnabled,
+  encouragementEnabled,
+  setEncouragementEnabled,
+  questionEnabled,
+  setQuestionEnabled,
+  pauseReflectCount = 0,
+  slowPlaybackCount = 0,
+  rewindCount = 0,
+  summaryCount = 0,
+  questionCount = 0,
+  encouragementCount = 0,
 }) => {
+  const [loggingActive, setLoggingActive] = useState(isLogging());
   // Format duration for display
   const formatDuration = (ms: number): string => {
     const seconds = Math.floor(ms / 1000);
@@ -55,6 +97,12 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
     }
     return `${remainingSeconds}s`;
   };
+
+  useEffect(() => {
+    if (adaptationMessage) {
+      logAdaptationMessage(adaptationMessage);
+    }
+  }, [adaptationMessage]);
 
   return (
     <div className="debug-panel">
@@ -120,40 +168,149 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
         <div className="emotion-cooldowns">
           <h4>Adaptation Cooldowns:</h4>
           <div className="cooldown-item">
-            <span>Rewind:</span>
+            <span>Global:</span>
+            <span className={globalCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
+              {globalCooldown > 0 ? formatDuration(globalCooldown) : 'Ready'}
+            </span>
+          </div>
+          <div className="cooldown-item">
+            <span>
+              <input
+                type="checkbox"
+                checked={rewindEnabled}
+                onChange={e => setRewindEnabled(e.target.checked)}
+                style={{ marginRight: 6 }}
+              />
+              Rewind
+            </span>
+            <span style={{ marginRight: '8px', fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
+              ({rewindCount}/2)
+            </span>
             <span className={rewindCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
               {rewindCooldown > 0 ? formatDuration(rewindCooldown) : 'Ready'}
             </span>
           </div>
           <div className="cooldown-item">
-            <span>Pause & Reflect:</span>
+            <span>
+              <input
+                type="checkbox"
+                checked={pauseReflectEnabled}
+                onChange={e => setPauseReflectEnabled(e.target.checked)}
+                style={{ marginRight: 6 }}
+              />
+              Pause & Reflect
+            </span>
+            <span style={{ marginRight: '8px', fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
+              ({pauseReflectCount}/2)
+            </span>
             <span className={pauseReflectCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
               {pauseReflectCooldown > 0 ? formatDuration(pauseReflectCooldown) : 'Ready'}
             </span>
           </div>
           <div className="cooldown-item">
-            <span>Slow Playback:</span>
+            <span>
+              <input
+                type="checkbox"
+                checked={slowPlaybackEnabled}
+                onChange={e => setSlowPlaybackEnabled(e.target.checked)}
+                style={{ marginRight: 6 }}
+              />
+              Slow Playback
+            </span>
+            <span style={{ marginRight: '8px', fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
+              ({slowPlaybackCount}/2)
+            </span>
             <span className={slowPlaybackCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
               {slowPlaybackCooldown > 0 ? formatDuration(slowPlaybackCooldown) : 'Ready'}
             </span>
           </div>
           <div className="cooldown-item">
-            <span>Summary:</span>
+            <span>
+              <input
+                type="checkbox"
+                checked={summaryEnabled}
+                onChange={e => setSummaryEnabled(e.target.checked)}
+                style={{ marginRight: 6 }}
+              />
+              Summary
+            </span>
+            <span style={{ marginRight: '8px', fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
+              ({summaryCount}/2)
+            </span>
             <span className={summaryCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
               {summaryCooldown > 0 ? formatDuration(summaryCooldown) : 'Ready'}
             </span>
           </div>
           <div className="cooldown-item">
-            <span>Encouragement:</span>
+            <span>
+              <input
+                type="checkbox"
+                checked={encouragementEnabled}
+                onChange={e => setEncouragementEnabled(e.target.checked)}
+                style={{ marginRight: 6 }}
+              />
+              Encouragement
+            </span>
+            <span style={{ marginRight: '8px', fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
+              ({encouragementCount}/5)
+            </span>
             <span className={encouragementCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
               {encouragementCooldown > 0 ? formatDuration(encouragementCooldown) : 'Ready'}
             </span>
           </div>
           <div className="cooldown-item">
-            <span>Question:</span>
+            <span>
+              <input
+                type="checkbox"
+                checked={questionEnabled}
+                onChange={e => setQuestionEnabled(e.target.checked)}
+                style={{ marginRight: 6 }}
+              />
+              Question
+            </span>
+            <span style={{ marginRight: '8px', fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
+              ({questionCount}/2)
+            </span>
             <span className={questionCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
               {questionCooldown > 0 ? formatDuration(questionCooldown) : 'Ready'}
             </span>
+          </div>
+        </div>
+
+        {/* Logging Controls */}
+        <div className="logging-controls">
+          <h4>Adaptation Logging:</h4>
+          <div className="logging-buttons">
+            <button 
+              onClick={() => {
+                startLogging();
+                setLoggingActive(true);
+              }} 
+              className={`logging-button ${loggingActive ? 'disabled' : 'start'}`}
+              disabled={loggingActive}
+            >
+              ▶️ Start Logging
+            </button>
+            <button 
+              onClick={() => {
+                stopLogging();
+                setLoggingActive(false);
+              }} 
+              className={`logging-button ${loggingActive ? 'stop' : 'disabled'}`}
+              disabled={!loggingActive}
+            >
+              ⏹️ Stop Logging
+            </button>
+          </div>
+          <div className="logging-status">
+            Status: <span className={loggingActive ? 'status-active' : 'status-inactive'}>
+              {loggingActive ? 'Active' : 'Inactive'}
+            </span>
+          </div>
+          <div className="download-logs">
+            <button onClick={downloadAdaptationLogs} className="download-button">
+              📥 Download Adaptation Logs
+            </button>
           </div>
         </div>
 
@@ -169,12 +326,17 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
 
       {/* Debug buttons in horizontal layout */}
       <div className="debug-buttons">
-        <button onClick={triggerRewind}>Rewind</button>
-        <button onClick={triggerPauseReflect}>Pause & Reflect</button>
-        <button onClick={triggerSlowPlayback}>Slow Playback</button>
-        <button onClick={triggerSummary}>Summary</button>
-        <button onClick={triggerEncouragement}>Encourage</button>
-        <button onClick={triggerQuestion}>Question</button>
+        <button onClick={triggerRewind} disabled={!rewindEnabled}>Rewind</button>
+        <button onClick={triggerPauseReflect} disabled={!pauseReflectEnabled}>Pause & Reflect</button>
+        <button onClick={triggerSlowPlayback} disabled={!slowPlaybackEnabled}>Slow Playback</button>
+        <button onClick={triggerSummary} disabled={!summaryEnabled}>Summary</button>
+        <button onClick={triggerEncouragement} disabled={!encouragementEnabled}>Encourage</button>
+        <button onClick={triggerQuestion} disabled={!questionEnabled}>Question</button>
+        {adaptationMessage && (
+          <span className="adaptation-message" style={{ color: '#ffd700', fontWeight: 'bold', marginLeft: 'auto', alignSelf: 'center', display: 'inline-block' }}>
+            {adaptationMessage}
+          </span>
+        )}
       </div>
     </div>
   );

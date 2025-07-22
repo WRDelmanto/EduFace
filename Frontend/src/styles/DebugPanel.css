@@ -201,3 +201,152 @@
   color: #4CAF50;
   font-weight: bold;
 }
+
+.adaptation-message {
+  color: #ffd700;
+  font-weight: bold;
+  text-align: right;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom styled switch for adaptation toggles */
+.cooldown-item input[type="checkbox"] {
+  appearance: none;
+  width: 22px;
+  height: 12px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.3);
+  position: relative;
+  outline: none;
+  cursor: pointer;
+  vertical-align: middle;
+  transition: background 0.2s;
+  margin-right: 6px;
+}
+
+.cooldown-item input[type="checkbox"]:checked {
+  background: #4CAF50;
+  border-color: #4CAF50;
+}
+
+.cooldown-item input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  transition: left 0.2s;
+}
+
+.cooldown-item input[type="checkbox"]:checked::before {
+  left: 12px;
+  background: #ffd700;
+}
+
+.logging-controls {
+  flex: 0 0 200px;
+  color: white;
+  padding: 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.logging-controls h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.logging-buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.logging-button {
+  flex: 1;
+  padding: 6px 12px;
+  font-size: 11px;
+  border: 1px solid;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.logging-button.start {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #45a049;
+}
+
+.logging-button.start:hover:not(:disabled) {
+  background-color: #45a049;
+  transform: translateY(-1px);
+}
+
+.logging-button.stop {
+  background-color: #f44336;
+  color: white;
+  border-color: #d32f2f;
+}
+
+.logging-button.stop:hover:not(:disabled) {
+  background-color: #d32f2f;
+  transform: translateY(-1px);
+}
+
+.logging-button.disabled {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+  border-color: rgba(255, 255, 255, 0.2);
+  cursor: not-allowed;
+}
+
+.logging-status {
+  font-size: 12px;
+  text-align: center;
+}
+
+.status-active {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.status-inactive {
+  color: #f44336;
+  font-weight: bold;
+}
+
+.download-logs {
+  margin-top: 12px;
+}
+
+.download-button {
+  padding: 6px 12px;
+  font-size: 11px;
+  background-color: #4CAF50;
+  color: white;
+  border: 1px solid #45a049;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.download-button:hover {
+  background-color: #45a049;
+  transform: translateY(-1px);
+}

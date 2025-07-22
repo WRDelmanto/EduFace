@@ -16,6 +16,7 @@ interface LearningVideoProps {
   pausedForFace?: boolean; // Add this prop
   dominantEmotion?: string;
   emotionPercentage?: number;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
 }
 
 const LearningVideo: React.FC<LearningVideoProps> = ({
@@ -26,9 +27,11 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
   onCountdownComplete,
   pausedForFace, // Destructure the new prop
   dominantEmotion = '',
-  emotionPercentage = 0
+  emotionPercentage = 0,
+  videoRef: externalVideoRef
 }) => {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const internalVideoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = externalVideoRef || internalVideoRef;
   const [countdown, setCountdown] = useState(3);
   const [encouragingMessage, setEncouragingMessage] = useState('');
   const [correctMessage, setCorrectMessage] = useState('');
@@ -182,6 +185,13 @@ const LearningVideo: React.FC<LearningVideoProps> = ({
         muted={!canStart}
       >
         <source src={learningVideo} type="video/mp4" />
+        <track
+          src="/LearningVideo.vtt"
+          kind="subtitles"
+          srcLang="en"
+          label="English"
+          default
+        />
         Your browser does not support the video tag.
       </video>
       

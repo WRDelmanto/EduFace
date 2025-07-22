@@ -89,7 +89,8 @@
 .webcam-preview-container {
   position: relative;
   width: 100%;
-  max-width: 700px; /* Increased from 500px */
+  max-width: 400px;
+  max-height: 300px;
   margin: 0 auto;
   border-radius: 16px;
   overflow: hidden;
@@ -109,6 +110,9 @@
   height: auto;
   display: block;
   transform: scaleX(-1); /* Mirror the video */
+  max-width: 400px;
+  max-height: 300px;
+  margin: 0 auto;
 }
 
 .center-guide {

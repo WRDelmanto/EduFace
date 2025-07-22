@@ -46,7 +46,7 @@ const CountdownOverlay: React.FC<CountdownOverlayProps> = ({ onComplete, isActiv
           <div className="countdown-number">{count > 0 ? count : "▶️"}</div>
         </div>
         <div className="countdown-text">
-          {count > 0 ? "Get ready to continue learning!" : "Let's go!"}
+          {count > 0 ? "Let's Start Learning!" : "Let's go!"}
         </div>
       </div>
     </div>
