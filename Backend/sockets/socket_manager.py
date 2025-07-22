@@ -5,6 +5,17 @@ import base64
 import numpy as np
 import cv2
 
+# Recursive function to convert numpy types to native Python types
+def make_json_serializable(obj):
+    if isinstance(obj, dict):
+        return {k: make_json_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [make_json_serializable(v) for v in obj]
+    elif isinstance(obj, np.generic):
+        return obj.item()
+    else:
+        return obj
+
 # Create an instance of AsyncServer
 sio = AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 
@@ -59,6 +70,9 @@ async def frame(sid, data):
 
     # Step 2: Analyze the face and get all emotions
     emotions_dict = deep_face_analyzer.get_emotions(face_img)
+
+    # Convert all values in emotions_dict to native Python types for JSON serialization
+    emotions_dict = make_json_serializable(emotions_dict)
 
     # Step 3: Return analysis result
     await sio.emit('frame_received', {
