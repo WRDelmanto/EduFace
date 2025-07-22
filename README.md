@@ -3,9 +3,9 @@
 #### # App Name: Eduface
 #### # Description: Eduface - Educational Facial Analysis for Cognitive Engagement
 #### # Authors:
-- **XXXXX**
-  - ID: xxxxxxxxx
-  - Email: xxx@student.douglascollege.ca
+- **Isabel Agbu**
+  - ID: 300378791
+  - Email:agbui@student.douglascollege.ca
 - **Nathan Bussabok**
   - ID: 300375256
   - Email: bussabokn@student.douglascollege.ca
