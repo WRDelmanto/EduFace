@@ -350,3 +350,14 @@
   background-color: #45a049;
   transform: translateY(-1px);
 }
+
+.cooldown-item span.global-cooldown-label {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #888;
+  background: #f4f4f4;
+  border-radius: 6px;
+  padding: 2px 8px;
+  vertical-align: middle;
+  display: inline-block;
+}

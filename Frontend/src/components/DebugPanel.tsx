@@ -42,6 +42,7 @@ interface DebugPanelProps {
   summaryCount?: number;
   questionCount?: number;
   encouragementCount?: number;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
 const DebugPanel: React.FC<DebugPanelProps> = ({
@@ -84,8 +85,23 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   summaryCount = 0,
   questionCount = 0,
   encouragementCount = 0,
+  videoRef,
 }) => {
   const [loggingActive, setLoggingActive] = useState(isLogging());
+  const [timerTick, setTimerTick] = useState(0);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+    if (videoRef?.current && !videoRef.current.paused) {
+      interval = setInterval(() => {
+        setTimerTick(t => t + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [videoRef, videoRef?.current?.paused]);
+
   // Format duration for display
   const formatDuration = (ms: number): string => {
     const seconds = Math.floor(ms / 1000);
@@ -103,6 +119,15 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
       logAdaptationMessage(adaptationMessage);
     }
   }, [adaptationMessage]);
+
+  const currentTime = videoRef?.current?.currentTime || 0;
+
+  // Remove the 2-minute lockout logic and use only the actual cooldowns
+  const effectiveRewindCooldown = rewindCooldown;
+  const effectivePauseReflectCooldown = pauseReflectCooldown;
+
+  // Add a prop or state to indicate if it's the first global cooldown
+  const isFirstGlobalCooldown = globalCooldown > 48000; // 1.5 min = 90000ms, 48s = 48000ms
 
   return (
     <div className="debug-panel">
@@ -186,8 +211,8 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
             <span style={{ marginRight: '8px', fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
               ({rewindCount}/2)
             </span>
-            <span className={rewindCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
-              {rewindCooldown > 0 ? formatDuration(rewindCooldown) : 'Ready'}
+            <span className={effectiveRewindCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
+              {effectiveRewindCooldown > 0 ? formatDuration(effectiveRewindCooldown) : 'Ready'}
             </span>
           </div>
           <div className="cooldown-item">
@@ -203,8 +228,8 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
             <span style={{ marginRight: '8px', fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
               ({pauseReflectCount}/2)
             </span>
-            <span className={pauseReflectCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
-              {pauseReflectCooldown > 0 ? formatDuration(pauseReflectCooldown) : 'Ready'}
+            <span className={effectivePauseReflectCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
+              {effectivePauseReflectCooldown > 0 ? formatDuration(effectivePauseReflectCooldown) : 'Ready'}
             </span>
           </div>
           <div className="cooldown-item">
@@ -218,10 +243,12 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
               Slow Playback
             </span>
             <span style={{ marginRight: '8px', fontSize: '12px', color: '#ff6b35', fontWeight: 'bold' }}>
-              ({slowPlaybackCount}/2)
+              ({slowPlaybackCount}/1)
             </span>
             <span className={slowPlaybackCooldown > 0 ? 'cooldown-active' : 'cooldown-ready'}>
-              {slowPlaybackCooldown > 0 ? formatDuration(slowPlaybackCooldown) : 'Ready'}
+              {slowPlaybackCount >= 1
+                ? 'Done'
+                : (slowPlaybackCooldown > 0 ? formatDuration(slowPlaybackCooldown) : 'Ready')}
             </span>
           </div>
           <div className="cooldown-item">

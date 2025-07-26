@@ -47,6 +47,14 @@ const LearningContent: React.FC<{
   showDebugPanel,
   setShowDebugPanel
 }) => {
+  // --- MOVE THESE TO THE VERY TOP ---
+  const [rewindEnabled, setRewindEnabled] = useState(true);
+  const [pauseReflectEnabled, setPauseReflectEnabled] = useState(true);
+  const [slowPlaybackEnabled, setSlowPlaybackEnabled] = useState(true);
+  const [summaryEnabled, setSummaryEnabled] = useState(true);
+  const [encouragementEnabled, setEncouragementEnabled] = useState(true);
+  const [questionEnabled, setQuestionEnabled] = useState(true);
+  // --- END MOVED BLOCK ---
   // Now we can use all the hooks inside the context
   const { triggerRewind, setMessageCallback: setRewindCallback } = useRewind();
   const { triggerPauseReflect } = usePauseReflect();
@@ -90,7 +98,11 @@ const LearningContent: React.FC<{
   const [lastEncouragementTrigger, setLastEncouragementTrigger] = useState<number>(0);
   const [lastQuestionTrigger, setLastQuestionTrigger] = useState<number>(0);
   const [lastGlobalAdaptationTrigger, setLastGlobalAdaptationTrigger] = useState<number>(0);
-  const GLOBAL_COOLDOWN = 40 * 1000; // 40 seconds
+  // Move this to the top, before GLOBAL_COOLDOWN is used
+  const [firstGlobalCooldown, setFirstGlobalCooldown] = useState(true);
+  const INITIAL_GLOBAL_COOLDOWN = 90 * 1000; // 1.5 minutes
+  const REGULAR_GLOBAL_COOLDOWN = 48 * 1000; // 48 seconds
+  const GLOBAL_COOLDOWN = 48 * 1000; // 48 seconds
   const REWIND_COOLDOWN = 120 * 1000; // 2 minutes
   const PAUSE_REFLECT_COOLDOWN = 120 * 1000; // 2 minutes
   const SLOW_PLAYBACK_COOLDOWN = 120 * 1000; // 2 minutes
@@ -279,18 +291,21 @@ const LearningContent: React.FC<{
       if (globalCooldownActive) return;
 
       // --- Adaptation logic based on your table ---
-      // Rewind: Confusion, Frustration
+      // Rewind: Confusion
       if (
+        !globalCooldownActive &&
         rewindEnabled &&
         rewindCount < MAX_REWIND_COUNT &&
-        (learningState === 'confusion' || learningState === 'frustration') &&
-        (currentTime - lastRewindTrigger) >= REWIND_COOLDOWN
+        learningState === 'confusion' &&
+        emotionDuration >= 8 * 1000 &&
+        (currentTime - lastRewindTrigger) >= reactionCooldown
       ) {
         const videoCurrentTime = videoRef.current?.currentTime || 0;
         const checkpoint = findCurrentCheckpoint(videoCurrentTime);
         
         setAdaptationMessage(`Rewind triggered by ${learningState}`);
         setLastGlobalAdaptationTrigger(currentTime);
+        if (firstGlobalCooldown) setFirstGlobalCooldown(false);
         
         // Log the adaptation event
         logAdaptationEvent(
@@ -300,7 +315,7 @@ const LearningContent: React.FC<{
           persistentEmotionRef.current,
           learningState,
           rewindCount + 1,
-          2, // Max count
+          2,
           `Triggered by ${learningState} emotion`
         );
         
@@ -313,22 +328,25 @@ const LearningContent: React.FC<{
         return;
       }
 
-      // Pause & Reflect: Frustration, Disengagement
+      // Pause/Reflect: Sadness
       if (
+        !globalCooldownActive &&
         pauseReflectEnabled &&
         pauseReflectCount < MAX_PAUSE_REFLECT_COUNT &&
-        (learningState === 'frustration' || learningState === 'disengagement') &&
-        (currentTime - lastPauseReflectTrigger) >= PAUSE_REFLECT_COOLDOWN
+        learningState === 'confusion' &&
+        emotionDuration >= 8 * 1000 &&
+        (currentTime - lastPauseReflectTrigger) >= reactionCooldown
       ) {
         const videoCurrentTime = videoRef.current?.currentTime || 0;
         const checkpoint = findCurrentCheckpoint(videoCurrentTime);
         
-        setAdaptationMessage(`Pause & Reflect triggered by ${learningState}`);
+        setAdaptationMessage(`Pause/Reflect triggered by ${learningState}`);
         setLastGlobalAdaptationTrigger(currentTime);
+        if (firstGlobalCooldown) setFirstGlobalCooldown(false);
         
         // Log the adaptation event
         logAdaptationEvent(
-          'Pause & Reflect',
+          'PauseReflect',
           videoCurrentTime,
           checkpoint.title,
           persistentEmotionRef.current,
@@ -349,6 +367,7 @@ const LearningContent: React.FC<{
 
       // Slow Playback: Confusion
       if (
+        !globalCooldownActive &&
         slowPlaybackEnabled &&
         slowPlaybackCount < MAX_SLOW_PLAYBACK_COUNT &&
         learningState === 'confusion' &&
@@ -360,6 +379,7 @@ const LearningContent: React.FC<{
         
         setAdaptationMessage(`Slow Playback triggered by ${learningState}`);
         setLastGlobalAdaptationTrigger(currentTime);
+        if (firstGlobalCooldown) setFirstGlobalCooldown(false);
         
         // Log the adaptation event
         logAdaptationEvent(
@@ -384,6 +404,7 @@ const LearningContent: React.FC<{
 
       // Summary: Confusion, Disengagement
       if (
+        !globalCooldownActive &&
         summaryEnabled && // <-- ADD THIS CHECK
         summaryCount < MAX_SUMMARY_COUNT &&
         (learningState === 'confusion' || learningState === 'disengagement') &&
@@ -395,6 +416,7 @@ const LearningContent: React.FC<{
         
         setAdaptationMessage(`Summary triggered by ${learningState}`);
         setLastGlobalAdaptationTrigger(currentTime);
+        if (firstGlobalCooldown) setFirstGlobalCooldown(false);
         
         // Log the adaptation event
         logAdaptationEvent(
@@ -419,6 +441,7 @@ const LearningContent: React.FC<{
 
       // Encourage: Frustration, Disengagement
       if (
+        !globalCooldownActive &&
         encouragementEnabled && // <-- ADD THIS CHECK
         encouragementCount < MAX_ENCOURAGEMENT_COUNT &&
         (learningState === 'frustration' || learningState === 'disengagement') &&
@@ -430,6 +453,7 @@ const LearningContent: React.FC<{
         
         setAdaptationMessage(`Encourage triggered by ${learningState}`);
         setLastGlobalAdaptationTrigger(currentTime);
+        if (firstGlobalCooldown) setFirstGlobalCooldown(false);
         
         // Log the adaptation event
         logAdaptationEvent(
@@ -452,12 +476,12 @@ const LearningContent: React.FC<{
         return;
       }
 
-      // Question: Engagement
+      // Question: Engagement or Disengagement
       if (
+        !globalCooldownActive &&
         questionEnabled && // <-- ADD THIS CHECK
         questionCount < MAX_QUESTION_COUNT &&
-        learningState === 'engagement' &&
-        emotionDuration >= 5 * 1000 &&
+        (learningState === 'engagement' || learningState === 'disengagement') &&
         (currentTime - lastQuestionTrigger) >= reactionCooldown
       ) {
         const videoCurrentTime = videoRef.current?.currentTime || 0;
@@ -465,6 +489,7 @@ const LearningContent: React.FC<{
         
         setAdaptationMessage(`Question triggered by ${learningState}`);
         setLastGlobalAdaptationTrigger(currentTime);
+        if (firstGlobalCooldown) setFirstGlobalCooldown(false);
         
         // Log the adaptation event
         logAdaptationEvent(
@@ -507,7 +532,14 @@ const LearningContent: React.FC<{
     lastSummaryTrigger,
     lastSlowPlaybackTrigger,
     lastEncouragementTrigger,
-    lastGlobalAdaptationTrigger
+    lastGlobalAdaptationTrigger,
+    firstGlobalCooldown,
+    rewindEnabled,
+    pauseReflectEnabled,
+    slowPlaybackEnabled,
+    summaryEnabled,
+    encouragementEnabled,
+    questionEnabled
   ]);
 
   // Cleanup intervals on component unmount
@@ -536,14 +568,6 @@ const LearningContent: React.FC<{
   }, [learningState]);
 
   const [adaptationMessage, setAdaptationMessage] = useState<string>('');
-
-  // New state variables for enabling/disabling adaptations
-  const [rewindEnabled, setRewindEnabled] = useState(true);
-  const [pauseReflectEnabled, setPauseReflectEnabled] = useState(true);
-  const [slowPlaybackEnabled, setSlowPlaybackEnabled] = useState(true);
-  const [summaryEnabled, setSummaryEnabled] = useState(true);
-  const [encouragementEnabled, setEncouragementEnabled] = useState(true);
-  const [questionEnabled, setQuestionEnabled] = useState(true);
 
   return (
     <>
@@ -646,6 +670,7 @@ const LearningContent: React.FC<{
           summaryCount={summaryCount}
           questionCount={questionCount}
           encouragementCount={encouragementCount}
+          videoRef={videoRef}
         />
       )}
     </>
